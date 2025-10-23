@@ -59,6 +59,7 @@ class DailyReportDetailDialog(QDialog):
                 background: transparent;
                 margin: 0px;
                 padding: 0px;
+                top: -2px;
             }
             QTabBar::tab {
                 background: #f5f5f5;
