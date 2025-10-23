@@ -250,6 +250,11 @@ class DailyReportDetailDialog(QDialog):
     
     def create_task_progress_tab(self):
         """创建任务进度选项卡"""
+        # ✅ 创建滚动区域
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -262,7 +267,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #999999; font-size: 14px; padding: 50px;")
             layout.addWidget(no_data_label)
-            return widget
+            scroll.setWidget(widget)
+            return scroll
         
         table = QTableWidget()
         table.setRowCount(len(tasks))
@@ -284,10 +290,16 @@ class DailyReportDetailDialog(QDialog):
             table.setItem(row, 5, QTableWidgetItem(task.get('impactMeasures', '-')))
         
         layout.addWidget(table)
-        return widget
+        scroll.setWidget(widget)
+        return scroll
     
     def create_tomorrow_plans_tab(self):
         """创建明日计划选项卡"""
+        # ✅ 创建滚动区域
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -300,7 +312,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #999999; font-size: 14px; padding: 50px;")
             layout.addWidget(no_data_label)
-            return widget
+            scroll.setWidget(widget)
+            return scroll
         
         table = QTableWidget()
         table.setRowCount(len(plans))
@@ -320,10 +333,16 @@ class DailyReportDetailDialog(QDialog):
             table.setItem(row, 5, QTableWidgetItem(plan.get('remarks', '-')))
         
         layout.addWidget(table)
-        return widget
+        scroll.setWidget(widget)
+        return scroll
     
     def create_worker_reports_tab(self):
         """创建人员报告选项卡"""
+        # ✅ 创建滚动区域
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -336,7 +355,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #999999; font-size: 14px; padding: 50px;")
             layout.addWidget(no_data_label)
-            return widget
+            scroll.setWidget(widget)
+            return scroll
         
         table = QTableWidget()
         table.setRowCount(len(workers))
@@ -356,10 +376,16 @@ class DailyReportDetailDialog(QDialog):
             table.setItem(row, 5, QTableWidgetItem(worker.get('workHours', '-')))
         
         layout.addWidget(table)
-        return widget
+        scroll.setWidget(widget)
+        return scroll
     
     def create_machinery_tab(self):
         """创建机械租赁选项卡"""
+        # ✅ 创建滚动区域
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: transparent; }")
+        
         widget = QWidget()
         layout = QVBoxLayout(widget)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -372,7 +398,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #999999; font-size: 14px; padding: 50px;")
             layout.addWidget(no_data_label)
-            return widget
+            scroll.setWidget(widget)
+            return scroll
         
         table = QTableWidget()
         table.setRowCount(len(machinery))
@@ -392,7 +419,8 @@ class DailyReportDetailDialog(QDialog):
             table.setItem(row, 5, QTableWidgetItem(item.get('shift', '-')))
         
         layout.addWidget(table)
-        return widget
+        scroll.setWidget(widget)
+        return scroll
     
     def create_problems_and_requirements_tab(self):
         """创建问题反馈选项卡（包含问题反馈和需求描述）"""
