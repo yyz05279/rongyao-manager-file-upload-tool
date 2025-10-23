@@ -16,6 +16,7 @@ from ui.upload_widget import UploadWidget
 from services.auth_service import AuthService
 from services.config_service import ConfigService
 from services.project_service import ProjectService
+from services.app_state import AppState
 
 
 class MainWindow(QMainWindow):
@@ -25,6 +26,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.auth_service = AuthService()
         self.config_service = ConfigService()
+        self.app_state = AppState()  # 全局状态管理
         self.user_info = None
         self.project_info = None
         self.setup_ui()
@@ -93,32 +95,47 @@ class MainWindow(QMainWindow):
     
     def on_logout(self):
         """退出登录处理"""
-        reply = QMessageBox.question(
-            self,
-            "确认退出",
-            "确定要退出登录吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.No
-        )
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setWindowTitle("确认退出")
+        msg_box.setText("确定要退出登录吗？")
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg_box.setDefaultButton(QMessageBox.StandardButton.No)
+        
+        # 设置按钮文本为中文
+        yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
+        yes_button.setText("确定")
+        no_button = msg_box.button(QMessageBox.StandardButton.No)
+        no_button.setText("取消")
+        
+        reply = msg_box.exec()
         
         if reply == QMessageBox.StandardButton.Yes:
             self.user_info = None
             self.project_info = None
             self.auth_service.clear_token()
             self.config_service.clear_token()
+            self.app_state.clear()  # 清空全局状态
             self.login_widget.clear_form()
             self.stacked_widget.setCurrentWidget(self.login_widget)
     
     def closeEvent(self, event):
         """关闭窗口事件"""
         if self.upload_widget.has_pending_uploads():
-            reply = QMessageBox.question(
-                self,
-                "确认退出",
-                "还有文件正在上传，确定要退出吗？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Icon.Warning)
+            msg_box.setWindowTitle("确认退出")
+            msg_box.setText("还有文件正在上传，确定要退出吗？")
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            msg_box.setDefaultButton(QMessageBox.StandardButton.No)
+            
+            # 设置按钮文本为中文
+            yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
+            yes_button.setText("确定")
+            no_button = msg_box.button(QMessageBox.StandardButton.No)
+            no_button.setText("取消")
+            
+            reply = msg_box.exec()
             
             if reply == QMessageBox.StandardButton.No:
                 event.ignore()
@@ -215,6 +232,9 @@ class MainWindow(QMainWindow):
             
             project_service = ProjectService(api_base_url, token)
             self.project_info = project_service.get_my_project()
+            
+            # 保存到全局状态
+            self.app_state.set_project_info(self.project_info)
             
             print("✅ 项目信息获取成功\n")
             

@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore', message='urllib3 v2 only supports OpenSSL 1.1.1+')
 
 from PyQt6.QtWidgets import QApplication, QMessageBox
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QTranslator, QLocale, QLibraryInfo
 
 
 def main():
@@ -29,6 +29,33 @@ def main():
         app = QApplication(sys.argv)
         app.setApplicationName("熔盐管理文件上传工具")
         app.setOrganizationName("YourCompany")
+        
+        # 设置中文翻译
+        translator = QTranslator()
+        
+        # 尝试加载Qt自带的中文翻译文件
+        qt_translator_path = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+        
+        # 加载Qt基础库的中文翻译
+        if translator.load("qtbase_zh_CN", qt_translator_path):
+            app.installTranslator(translator)
+            print("✅ Qt中文翻译加载成功")
+        else:
+            # 如果找不到翻译文件，尝试从PyQt6包目录加载
+            try:
+                import PyQt6
+                pyqt6_path = os.path.dirname(PyQt6.__file__)
+                translations_path = os.path.join(pyqt6_path, "Qt6", "translations")
+                if translator.load("qtbase_zh_CN", translations_path):
+                    app.installTranslator(translator)
+                    print("✅ Qt中文翻译加载成功（从PyQt6目录）")
+                else:
+                    print("⚠️  未找到Qt中文翻译文件，将使用默认英文")
+            except Exception as e:
+                print(f"⚠️  加载翻译文件失败: {e}")
+        
+        # 设置区域为中文
+        QLocale.setDefault(QLocale(QLocale.Language.Chinese, QLocale.Country.China))
         
         # 设置插件路径（解决打包后找不到Qt插件的问题）
         if hasattr(sys, '_MEIPASS'):

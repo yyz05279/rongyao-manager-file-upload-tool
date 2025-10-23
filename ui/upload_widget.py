@@ -19,6 +19,7 @@ from services.config_service import ConfigService
 from services.base_service import BaseService
 from parse_daily_report_excel import DailyReportExcelParser
 from convert_to_api_format import convert_to_api_format
+from ui.daily_report_detail_dialog import DailyReportDetailDialog
 
 
 class UploadThread(QThread):
@@ -439,6 +440,13 @@ class UploadWidget(QWidget):
         self.data_table.horizontalHeader().setStretchLastSection(True)
         self.data_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         
+        # 启用自动换行
+        self.data_table.setWordWrap(True)
+        self.data_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+        
+        # 双击事件 - 显示详情
+        self.data_table.doubleClicked.connect(self.show_report_detail)
+        
         layout.addWidget(self.data_table)
         
         return group
@@ -550,13 +558,20 @@ class UploadWidget(QWidget):
     def clear_file_list(self):
         """清空文件列表"""
         if self.selected_files:
-            reply = QMessageBox.question(
-                self,
-                "确认清空",
-                "确定要清空文件列表吗？",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-                QMessageBox.StandardButton.No
-            )
+            msg_box = QMessageBox(self)
+            msg_box.setIcon(QMessageBox.Icon.Question)
+            msg_box.setWindowTitle("确认清空")
+            msg_box.setText("确定要清空文件列表吗？")
+            msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+            msg_box.setDefaultButton(QMessageBox.StandardButton.No)
+            
+            # 设置按钮文本为中文
+            yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
+            yes_button.setText("确定")
+            no_button = msg_box.button(QMessageBox.StandardButton.No)
+            no_button.setText("取消")
+            
+            reply = msg_box.exec()
             
             if reply == QMessageBox.StandardButton.Yes:
                 self.selected_files.clear()
@@ -716,13 +731,20 @@ class UploadWidget(QWidget):
             return
         
         # 确认上传
-        reply = QMessageBox.question(
-            self,
-            "确认上传",
-            f"确定要上传 {len(self.parsed_reports)} 条日报记录吗？",
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            QMessageBox.StandardButton.Yes
-        )
+        msg_box = QMessageBox(self)
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setWindowTitle("确认上传")
+        msg_box.setText(f"确定要上传 {len(self.parsed_reports)} 条日报记录吗？")
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg_box.setDefaultButton(QMessageBox.StandardButton.Yes)
+        
+        # 设置按钮文本为中文
+        yes_button = msg_box.button(QMessageBox.StandardButton.Yes)
+        yes_button.setText("确定")
+        no_button = msg_box.button(QMessageBox.StandardButton.No)
+        no_button.setText("取消")
+        
+        reply = msg_box.exec()
         
         if reply != QMessageBox.StandardButton.Yes:
             return
@@ -812,4 +834,18 @@ class UploadWidget(QWidget):
     def has_pending_uploads(self):
         """是否有待上传的文件"""
         return bool(self.selected_files)
+    
+    def show_report_detail(self, index):
+        """显示日报详情"""
+        row = index.row()
+        
+        if row < 0 or row >= len(self.parsed_reports):
+            return
+        
+        # 获取对应的日报数据
+        report_data = self.parsed_reports[row]
+        
+        # 创建并显示详情对话框
+        dialog = DailyReportDetailDialog(report_data, self)
+        dialog.exec()
 

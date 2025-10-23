@@ -63,11 +63,11 @@ class DailyReportExcelParser:
         else:
             report_data["overallProgress"] = "normal"
         
-        # 解析逐项进度汇报 (第6行开始)
-        report_data["taskProgressList"] = self._parse_task_progress(ws, start_row=6, end_row=12)
+        # 解析逐项进度汇报 (第6行开始，只保留序号2.x)
+        report_data["taskProgressList"] = self._parse_task_progress(ws, start_row=6, end_row=20)
         
-        # 解析明天工作计划 (第15行开始)
-        report_data["tomorrowPlans"] = self._parse_tomorrow_plans(ws, start_row=15, end_row=20)
+        # 解析明天工作计划 (第6行开始，只保留序号3.x)
+        report_data["tomorrowPlans"] = self._parse_tomorrow_plans(ws, start_row=6, end_row=20)
         
         # 解析各工种工作汇报 (第23行开始)
         report_data["workerReports"] = self._parse_worker_reports(ws, start_row=23, end_row=38)
@@ -78,11 +78,11 @@ class DailyReportExcelParser:
         # 解析机械租赁情况 (第41行开始)
         report_data["machineryRentals"] = self._parse_machinery_rentals(ws, start_row=41, end_row=45)
         
-        # 解析问题反馈 (第48行开始)
-        report_data["problemFeedbacks"] = self._parse_problem_feedbacks(ws, start_row=48, end_row=55)
+        # 解析问题反馈 (第48行开始，只保留序号1.x)
+        report_data["problemFeedbacks"] = self._parse_problem_feedbacks(ws, start_row=48, end_row=65)
         
-        # 解析需求描述 (第57行开始)
-        report_data["requirements"] = self._parse_requirements(ws, start_row=57, end_row=61)
+        # 解析需求描述 (第48行开始，只保留序号2.x)
+        report_data["requirements"] = self._parse_requirements(ws, start_row=48, end_row=65)
         
         return report_data
     
@@ -92,7 +92,7 @@ class DailyReportExcelParser:
         return str(value).strip() if value is not None else ""
     
     def _parse_task_progress(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析逐项进度汇报"""
+        """解析逐项进度汇报（序号2.x）"""
         tasks = []
         for i in range(start_row, end_row + 1):
             task_no = self._get_cell_value(ws, i, 1)
@@ -102,8 +102,8 @@ class DailyReportExcelParser:
             deviation_reason = self._get_cell_value(ws, i, 6)
             impact_measures = self._get_cell_value(ws, i, 7)
             
-            # 只保存有内容的任务
-            if task_name:
+            # 只保存有内容且序号以"2."开头的任务
+            if task_name and task_no.startswith("2."):
                 tasks.append({
                     "taskNo": task_no,
                     "taskName": task_name,
@@ -115,7 +115,7 @@ class DailyReportExcelParser:
         return tasks
     
     def _parse_tomorrow_plans(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析明天工作计划"""
+        """解析明天工作计划（序号3.x）"""
         plans = []
         for i in range(start_row, end_row + 1):
             plan_no = self._get_cell_value(ws, i, 1)
@@ -125,8 +125,8 @@ class DailyReportExcelParser:
             required_resources = self._get_cell_value(ws, i, 6)
             remarks = self._get_cell_value(ws, i, 7)
             
-            # 只保存有内容的计划
-            if task_name:
+            # 只保存有内容且序号以"3."开头的计划
+            if task_name and plan_no.startswith("3."):
                 plans.append({
                     "planNo": plan_no,
                     "taskName": task_name,
@@ -186,7 +186,7 @@ class DailyReportExcelParser:
         return machinery
     
     def _parse_problem_feedbacks(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析问题反馈"""
+        """解析问题反馈（序号1.x）"""
         problems = []
         for i in range(start_row, end_row + 1):
             problem_no = self._get_cell_value(ws, i, 1)
@@ -195,8 +195,8 @@ class DailyReportExcelParser:
             impact = self._get_cell_value(ws, i, 5)
             progress = self._get_cell_value(ws, i, 6)
             
-            # 只保存有问题描述的记录
-            if description:
+            # 只保存有问题描述且序号以"1."开头的记录
+            if description and problem_no.startswith("1."):
                 problems.append({
                     "problemNo": problem_no,
                     "description": description,
@@ -207,7 +207,7 @@ class DailyReportExcelParser:
         return problems
     
     def _parse_requirements(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析需求描述"""
+        """解析需求描述（序号2.x）"""
         requirements = []
         for i in range(start_row, end_row + 1):
             req_no = self._get_cell_value(ws, i, 1)
@@ -215,8 +215,8 @@ class DailyReportExcelParser:
             urgency_level = self._get_cell_value(ws, i, 4)
             expected_time = self._get_cell_value(ws, i, 6)
             
-            # 只保存有需求描述的记录
-            if description:
+            # 只保存有需求描述且序号以"2."开头的记录
+            if description and req_no.startswith("2."):
                 requirements.append({
                     "requirementNo": req_no,
                     "description": description,
