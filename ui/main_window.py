@@ -115,6 +115,7 @@ class MainWindow(QMainWindow):
             self.project_info = None
             self.auth_service.clear_token()
             self.config_service.clear_token()
+            self.config_service.clear_user_info()  # ✅ 清除缓存的用户信息
             self.app_state.clear()  # 清空全局状态
             self.login_widget.clear_form()
             self.stacked_widget.setCurrentWidget(self.login_widget)
@@ -166,20 +167,32 @@ class MainWindow(QMainWindow):
         # 设置认证服务的Token
         self.auth_service.set_token(token, api_base_url, refresh_token)
         
+        # ✅ 首先尝试从本地缓存获取用户信息
+        cached_user_info = self.config_service.get_user_info()
+        if cached_user_info:
+            print("✅ 从本地缓存获取用户信息")
+            print(f"缓存用户ID: {cached_user_info.get('id')}")
+            print(f"缓存用户名: {cached_user_info.get('username')}")
+        
         # 尝试获取项目信息（验证Token是否有效）
         try:
             project_service = ProjectService(api_base_url, token)
             self.project_info = project_service.get_my_project()
             
-            # Token有效，构建用户信息（简化版）
-            # 实际上应该调用用户信息接口获取完整用户信息
-            # 这里暂时使用保存的用户名
-            username = login_info.get('username', '用户')
-            self.user_info = {
-                'username': username,
-                'token': token,
-                'refreshToken': refresh_token
-            }
+            # ✅ Token有效，使用缓存的用户信息或构建新的用户信息
+            if cached_user_info:
+                # 优先使用本地缓存的完整用户信息
+                self.user_info = cached_user_info
+                print("✅ 使用缓存的用户信息\n")
+            else:
+                # 如果没有缓存，使用简化版用户信息
+                username = login_info.get('username', '用户')
+                self.user_info = {
+                    'username': username,
+                    'token': token,
+                    'refreshToken': refresh_token
+                }
+                print("✅ 使用简化版用户信息\n")
             
             print("✅ 自动登录成功，跳转到上传界面\n")
             
@@ -203,6 +216,9 @@ class MainWindow(QMainWindow):
                         user_info.get('expiresAt')
                     )
                     
+                    # ✅ 同时更新缓存的用户信息
+                    self.config_service.save_user_info(user_info)
+                    
                     print("✅ Token刷新成功\n")
                     
                     # 重新获取项目信息
@@ -216,9 +232,11 @@ class MainWindow(QMainWindow):
                     print(f"❌ Token刷新失败: {refresh_error}")
                     print("清除Token，显示登录界面\n")
                     self.config_service.clear_token()
+                    self.config_service.clear_user_info()  # ✅ 同时清除用户信息缓存
             else:
                 print("没有刷新Token，清除Token，显示登录界面\n")
                 self.config_service.clear_token()
+                self.config_service.clear_user_info()  # ✅ 同时清除用户信息缓存
     
     def fetch_project_info(self):
         """获取项目信息"""

@@ -313,6 +313,10 @@ class LoginWidget(QWidget):
             user_info.get('expiresAt')
         )
         
+        # ✅ 新增：保存用户信息到本地缓存
+        self.config_service.save_user_info(user_info)
+        print("✅ 用户信息已缓存到本地")
+        
         self.login_success.emit(user_info)
     
     def on_login_failed(self, error_message: str):

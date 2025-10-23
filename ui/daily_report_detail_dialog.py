@@ -8,7 +8,7 @@
 from PyQt6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTabWidget, QWidget, QTableWidget, QTableWidgetItem,
-    QTextEdit, QGroupBox, QScrollArea, QHeaderView
+    QTextEdit, QGroupBox, QScrollArea, QHeaderView, QSizePolicy
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QColor
@@ -76,12 +76,12 @@ class DailyReportDetailDialog(QDialog):
             }
         """)
         
-        # 添加各个选项卡 - 按照Excel序号结构组织
-        tab_widget.addTab(self.create_task_progress_tab(), "📋 逐项进度汇报（序号2）")
-        tab_widget.addTab(self.create_tomorrow_plans_tab(), "📅 明日工作计划（序号3）")
-        tab_widget.addTab(self.create_worker_reports_tab(), "👷 各工种工作汇报（二）")
-        tab_widget.addTab(self.create_machinery_tab(), "🚜 机械租赁情况（三）")
-        tab_widget.addTab(self.create_problems_and_requirements_tab(), "⚠️ 问题反馈（四）")
+        # 添加各个选项卡
+        tab_widget.addTab(self.create_task_progress_tab(), "📋 逐项进度汇报")
+        tab_widget.addTab(self.create_tomorrow_plans_tab(), "📅 明日工作计划")
+        tab_widget.addTab(self.create_worker_reports_tab(), "👷 各工种工作汇报")
+        tab_widget.addTab(self.create_machinery_tab(), "🚜 机械租赁情况")
+        tab_widget.addTab(self.create_problems_and_requirements_tab(), "⚠️ 问题反馈")
         
         layout.addWidget(tab_widget)
         
@@ -148,9 +148,11 @@ class DailyReportDetailDialog(QDialog):
         row1.addWidget(self._create_info_label("📅 日期:", self.report_data.get('reportDate', '-')))
         
         # 项目信息（优先从全局状态获取）
-        project_name = self.report_data.get('projectName', '-')
+        reporter_name = self.report_data.get('reporterName', '-')  # ✅ 改为 reporterName
         if self.project_info:
-            project_name = self.project_info.get('name', project_name)
+            project_name = self.project_info.get('name', reporter_name)
+        else:
+            project_name = reporter_name
         row1.addWidget(self._create_info_label("📁 项目:", project_name))
         info_layout.addLayout(row1)
         
@@ -387,37 +389,36 @@ class DailyReportDetailDialog(QDialog):
     
     def create_problems_and_requirements_tab(self):
         """创建问题反馈选项卡（包含问题反馈和需求描述）"""
-        widget = QWidget()
-        
-        # 创建滚动区域
+        # ✅ 创建 QScrollArea 来处理滚动
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { border: none; }")
+        scroll.setStyleSheet("QScrollArea { border: none; background-color: white; }")
         
-        # 容器widget
+        # 内容容器
         container = QWidget()
-        main_layout = QVBoxLayout(container)
-        main_layout.setSpacing(20)
-        main_layout.setContentsMargins(10, 10, 10, 10)
+        layout = QVBoxLayout(container)
+        layout.setSpacing(20)
+        layout.setContentsMargins(10, 10, 10, 10)
         
         # 1. 问题反馈分组
         problems_group = self._create_problems_group()
-        main_layout.addWidget(problems_group)
+        layout.addWidget(problems_group)
         
         # 2. 需求描述分组
         requirements_group = self._create_requirements_group()
-        main_layout.addWidget(requirements_group)
+        layout.addWidget(requirements_group)
         
-        main_layout.addStretch()
+        layout.addStretch()
         
         scroll.setWidget(container)
         
-        # 外层布局
-        outer_layout = QVBoxLayout(widget)
+        # 外层 widget
+        outer_widget = QWidget()
+        outer_layout = QVBoxLayout(outer_widget)
         outer_layout.setContentsMargins(0, 0, 0, 0)
         outer_layout.addWidget(scroll)
         
-        return widget
+        return outer_widget
     
     def _create_problems_group(self):
         """创建问题反馈分组"""
@@ -450,6 +451,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #4CAF50; font-size: 14px; font-weight: bold; padding: 30px;")
             layout.addWidget(no_data_label)
+            group.setMinimumHeight(120)
+            group.setMaximumHeight(120)
         else:
             table = QTableWidget()
             table.setRowCount(len(problems))
@@ -473,6 +476,14 @@ class DailyReportDetailDialog(QDialog):
                 table.setItem(row, 4, QTableWidgetItem(problem.get('progress', '-')))
             
             layout.addWidget(table)
+            
+            # ✅ 动态计算 QGroupBox 的高度
+            # 标题高度 + 内边距 + 表格高度
+            title_height = 30
+            padding_top_bottom = 20 + 10
+            group_height = title_height + padding_top_bottom + table.minimumHeight()
+            group.setMinimumHeight(group_height)
+            group.setMaximumHeight(group_height)
         
         return group
     
@@ -507,6 +518,8 @@ class DailyReportDetailDialog(QDialog):
             no_data_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
             no_data_label.setStyleSheet("color: #999999; font-size: 14px; padding: 30px;")
             layout.addWidget(no_data_label)
+            group.setMinimumHeight(120)
+            group.setMaximumHeight(120)
         else:
             table = QTableWidget()
             table.setRowCount(len(requirements))
@@ -524,6 +537,14 @@ class DailyReportDetailDialog(QDialog):
                 table.setItem(row, 3, QTableWidgetItem(req.get('expectedTime', '-')))
             
             layout.addWidget(table)
+            
+            # ✅ 动态计算 QGroupBox 的高度
+            # 标题高度 + 内边距 + 表格高度
+            title_height = 30
+            padding_top_bottom = 20 + 10
+            group_height = title_height + padding_top_bottom + table.minimumHeight()
+            group.setMinimumHeight(group_height)
+            group.setMaximumHeight(group_height)
         
         return group
     
@@ -558,6 +579,10 @@ class DailyReportDetailDialog(QDialog):
         table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
         table.verticalHeader().setVisible(False)
         
+        # 禁用表格自己的滚动条，使用外部滚动
+        table.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        table.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
         # 启用自动换行
         table.setWordWrap(True)
         table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
@@ -565,4 +590,21 @@ class DailyReportDetailDialog(QDialog):
         # 设置列宽
         for i in range(table.columnCount()):
             table.setColumnWidth(i, 150)
+        
+        # 调整表格高度以适应内容
+        table.setSizePolicy(QSizePolicy.Policy.Expanding, 
+                           QSizePolicy.Policy.Minimum)
+        
+        # 计算并设置表格的最小高度（根据行数）
+        row_count = table.rowCount()
+        header_height = table.horizontalHeader().height()
+        
+        # ✅ 正确的做法：计算每一行的实际高度并求和，而不是用默认值
+        total_row_height = 0
+        for row in range(row_count):
+            total_row_height += table.rowHeight(row)
+        
+        total_height = header_height + total_row_height + 2  # +2 for border
+        table.setMinimumHeight(total_height)
+        table.setMaximumHeight(total_height)
 

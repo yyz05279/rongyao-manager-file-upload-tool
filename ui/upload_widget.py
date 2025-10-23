@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QListWidget, QListWidgetItem, QMessageBox, QFrame,
     QComboBox, QProgressBar, QGroupBox, QTableWidget, QTableWidgetItem,
-    QHeaderView, QAbstractItemView, QScrollArea
+    QHeaderView, QAbstractItemView, QScrollArea, QCheckBox, QApplication
 )
 from PyQt6.QtCore import Qt, pyqtSignal, QThread, QFileInfo
 from PyQt6.QtGui import QFont, QIcon, QColor
@@ -30,13 +30,14 @@ class UploadThread(QThread):
     upload_failed = pyqtSignal(str)     # 上传失败信号
     
     def __init__(self, parsed_reports: list, project_id: int, reporter_id: int, 
-                 api_base_url: str, token: str):
+                 api_base_url: str, token: str, overwrite_existing: bool = False):
         super().__init__()
         self.parsed_reports = parsed_reports
         self.project_id = project_id
         self.reporter_id = reporter_id
         self.api_base_url = api_base_url
         self.token = token
+        self.overwrite_existing = overwrite_existing
     
     def run(self):
         """执行上传"""
@@ -48,7 +49,8 @@ class UploadThread(QThread):
             api_data = convert_to_api_format(
                 self.parsed_reports, 
                 self.project_id, 
-                self.reporter_id
+                self.reporter_id,
+                self.overwrite_existing
             )
             
             self.progress_updated.emit(30)
@@ -100,6 +102,7 @@ class UploadWidget(QWidget):
         self.upload_thread = None
         self.selected_files = []
         self.parsed_reports = []  # 存储解析后的日报数据
+        self.checked_reports = set()  # ✅ 存储勾选的日报索引
         self.auth_service = AuthService()
         self.config_service = ConfigService()
         self.setup_ui()
@@ -186,6 +189,22 @@ class UploadWidget(QWidget):
         self.clear_button.setStyleSheet(self.get_button_style("#9E9E9E", "#757575"))
         button_layout.addWidget(self.clear_button)
         
+        # 覆盖旧记录选项
+        self.overwrite_checkbox = QCheckBox("覆盖已存在的记录")
+        self.overwrite_checkbox.setStyleSheet("""
+            QCheckBox {
+                color: #666666;
+                font-size: 14px;
+                padding: 5px;
+            }
+            QCheckBox::indicator {
+                width: 18px;
+                height: 18px;
+            }
+        """)
+        self.overwrite_checkbox.setChecked(False)  # 默认不勾选
+        button_layout.addWidget(self.overwrite_checkbox)
+        
         self.upload_button = QPushButton("开始上传")
         self.upload_button.setMinimumSize(130, 45)
         self.upload_button.clicked.connect(self.start_upload)
@@ -245,33 +264,25 @@ class UploadWidget(QWidget):
     
     def create_user_info_panel(self):
         """创建用户信息面板"""
-        group = QGroupBox("用户和项目信息")
-        group.setStyleSheet("""
-            QGroupBox {
+        # 使用普通Widget代替QGroupBox，移除标题框
+        panel = QWidget()
+        panel.setStyleSheet("""
+            QWidget {
                 background-color: #f8f9fa;
                 border: 1px solid #e0e0e0;
                 border-radius: 5px;
                 padding: 15px;
-                font-weight: bold;
-                color: #000000;
-            }
-            QGroupBox::title {
-                color: #000000;
             }
         """)
         
         # 使用水平布局，将用户信息和项目信息放在同一行
-        layout = QHBoxLayout(group)
+        layout = QHBoxLayout(panel)
+        layout.setContentsMargins(15, 15, 15, 15)
         
         # 用户信息
-        self.user_label = QLabel("用户：未登录")
+        self.user_label = QLabel("未登录")
         self.user_label.setStyleSheet("color: #000000; font-size: 14px;")
         layout.addWidget(self.user_label)
-        
-        # 分隔符
-        separator = QLabel("|")
-        separator.setStyleSheet("color: #cccccc; font-size: 14px; margin: 0 10px;")
-        layout.addWidget(separator)
         
         # 当前项目标签
         project_label = QLabel("当前项目:")
@@ -285,7 +296,7 @@ class UploadWidget(QWidget):
         
         layout.addStretch()
         
-        return group
+        return panel
     
     def create_file_selection_panel(self):
         """创建文件选择面板"""
@@ -388,11 +399,27 @@ class UploadWidget(QWidget):
         # 预览按钮行
         button_layout = QHBoxLayout()
         
-        info_label = QLabel('添加文件后，点击"预览数据"查看解析结果')
+        info_label = QLabel('添加文件后，自动预览解析结果')
         info_label.setStyleSheet("color: #666666; font-size: 13px;")
         button_layout.addWidget(info_label)
         
         button_layout.addStretch()
+        
+        # ✅ 新增：全选/反选按钮
+        self.select_all_button = QPushButton("✓ 全选")
+        self.select_all_button.setMinimumSize(100, 40)
+        self.select_all_button.clicked.connect(self.select_all_reports)
+        self.select_all_button.setEnabled(False)
+        self.select_all_button.setStyleSheet(self.get_button_style("#4CAF50", "#388E3C"))
+        button_layout.addWidget(self.select_all_button)
+        
+        # ✅ 新增：反选按钮
+        self.deselect_all_button = QPushButton("✗ 反选")
+        self.deselect_all_button.setMinimumSize(100, 40)
+        self.deselect_all_button.clicked.connect(self.deselect_all_reports)
+        self.deselect_all_button.setEnabled(False)
+        self.deselect_all_button.setStyleSheet(self.get_button_style("#FF9800", "#F57C00"))
+        button_layout.addWidget(self.deselect_all_button)
         
         self.preview_button = QPushButton("🔍 预览数据")
         self.preview_button.setMinimumSize(130, 40)
@@ -403,13 +430,25 @@ class UploadWidget(QWidget):
         
         layout.addLayout(button_layout)
         
+        # ✅ 新增：加载动画标签
+        self.loading_label = QLabel("⏳ 正在加载数据...")
+        self.loading_label.setStyleSheet("""
+            color: #2196F3;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 10px;
+        """)
+        self.loading_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.loading_label.setVisible(False)
+        layout.addWidget(self.loading_label)
+        
         # 数据表格
         self.data_table = QTableWidget()
         self.data_table.setMinimumHeight(250)
         self.data_table.setMaximumHeight(400)
-        self.data_table.setColumnCount(8)
+        self.data_table.setColumnCount(9)  # ✅ 增加一列用于勾选
         self.data_table.setHorizontalHeaderLabels([
-            "日期", "项目名称", "进度状态", "任务数", "人员数", 
+            "✓", "日期", "项目名称", "进度状态", "任务数", "人员数", 
             "机械数", "问题数", "天气"
         ])
         
@@ -490,27 +529,15 @@ class UploadWidget(QWidget):
         self.user_info = user_info
         self.project_info = project_info
         
-        # 显示用户信息
-        # 优先显示姓名，如果没有则显示用户名
-        name = user_info.get('name')
-        username = user_info.get('username', '未知用户')
-        role = user_info.get('role', '')
+        # 显示用户信息：姓名 + 手机号
+        name = user_info.get('name', '未知用户')
+        phone = user_info.get('phone') or user_info.get('username', '')
         
-        # 构建显示文本
-        if name and name != username:
-            display_text = f"用户：{name} ({username})"
+        # 构建显示文本：姓名 手机号
+        if phone:
+            display_text = f"{name} {phone}"
         else:
-            display_text = f"用户：{username}"
-        
-        # 添加角色信息
-        role_map = {
-            'ADMIN': '管理员',
-            'MANAGER': '项目经理',
-            'OPERATOR': '运维人员'
-        }
-        role_text = role_map.get(role, role)
-        if role_text:
-            display_text += f" | 角色：{role_text}"
+            display_text = name
         
         self.user_label.setText(display_text)
         
@@ -527,7 +554,7 @@ class UploadWidget(QWidget):
             print("⚠️  没有项目信息\n")
     
     def add_files(self):
-        """添加文件"""
+        """添加文件（一次只能添加一个，新文件替换旧文件）"""
         from PyQt6.QtWidgets import QFileDialog
         
         files, _ = QFileDialog.getOpenFileNames(
@@ -538,22 +565,29 @@ class UploadWidget(QWidget):
         )
         
         if files:
-            for file_path in files:
-                if file_path not in self.selected_files:
-                    self.selected_files.append(file_path)
-                    file_info = QFileInfo(file_path)
-                    item = QListWidgetItem(f"📄 {file_info.fileName()}")
-                    item.setData(Qt.ItemDataRole.UserRole, file_path)
-                    self.file_list.addItem(item)
+            # ✅ 修改：只保留第一个选中的文件，替换旧文件
+            file_path = files[0]
             
-            self.status_label.setText(f'已添加 {len(self.selected_files)} 个文件，请点击"预览数据"查看')
-            # 启用预览按钮
-            self.preview_button.setEnabled(True)
-            # 清空之前的预览数据
+            # 清空旧文件
+            self.selected_files.clear()
+            self.file_list.clear()
             self.parsed_reports.clear()
+            self.checked_reports.clear()
             self.data_table.setRowCount(0)
-            # 禁用上传按钮，直到预览后才能上传
-            self.upload_button.setEnabled(False)
+            
+            # 添加新文件
+            self.selected_files.append(file_path)
+            file_info = QFileInfo(file_path)
+            item = QListWidgetItem(f"📄 {file_info.fileName()}")
+            item.setData(Qt.ItemDataRole.UserRole, file_path)
+            self.file_list.addItem(item)
+            
+            self.status_label.setText(f'已添加文件: {file_info.fileName()}，正在解析...')
+            
+            # ✅ 新增：自动执行预览数据
+            self.preview_button.setEnabled(True)
+            QApplication.processEvents()  # 更新UI
+            self.preview_data()  # 直接调用预览
     
     def clear_file_list(self):
         """清空文件列表"""
@@ -576,12 +610,14 @@ class UploadWidget(QWidget):
             if reply == QMessageBox.StandardButton.Yes:
                 self.selected_files.clear()
                 self.parsed_reports.clear()
+                self.checked_reports.clear()  # ✅ 清除勾选状态
                 self.file_list.clear()
                 self.data_table.setRowCount(0)
                 self.progress_bar.setValue(0)
                 self.status_label.setText("已清空文件列表")
                 self.preview_button.setEnabled(False)
                 self.upload_button.setEnabled(False)
+                self.upload_button.setText("开始上传")  # ✅ 重置按钮文本
     
     def preview_data(self):
         """预览数据"""
@@ -589,9 +625,14 @@ class UploadWidget(QWidget):
             QMessageBox.warning(self, "提示", "请先添加文件")
             return
         
+        # ✅ 显示加载动画
+        self.loading_label.setVisible(True)
+        
         # 禁用预览按钮
         self.preview_button.setEnabled(False)
         self.preview_button.setText("解析中...")
+        self.select_all_button.setEnabled(False)
+        self.deselect_all_button.setEnabled(False)
         self.status_label.setText("正在解析Excel文件...")
         
         try:
@@ -614,14 +655,21 @@ class UploadWidget(QWidget):
             # 显示在表格中
             self.display_parsed_data()
             
+            # ✅ 启用全选/反选按钮
+            self.select_all_button.setEnabled(True)
+            self.deselect_all_button.setEnabled(True)
+            
             # 启用上传按钮
             self.upload_button.setEnabled(True)
             self.status_label.setText(f"解析完成，共 {len(self.parsed_reports)} 条日报记录")
             
+            # ✅ 隐藏加载动画
+            self.loading_label.setVisible(False)
+            
             QMessageBox.information(
                 self, 
                 "解析成功", 
-                f'成功解析 {len(self.parsed_reports)} 条日报记录\n请检查数据无误后点击"开始上传"'
+                f'成功解析 {len(self.parsed_reports)} 条日报记录\n请勾选要上传的记录，然后点击"开始上传"'
             )
             
         except Exception as e:
@@ -629,6 +677,9 @@ class UploadWidget(QWidget):
             self.status_label.setText(f"解析失败：{str(e)}")
         
         finally:
+            # ✅ 隐藏加载动画
+            self.loading_label.setVisible(False)
+            
             # 恢复预览按钮
             self.preview_button.setEnabled(True)
             self.preview_button.setText("🔍 预览数据")
@@ -652,13 +703,19 @@ class UploadWidget(QWidget):
         }
         
         for row, report in enumerate(self.parsed_reports):
+            # 勾选框
+            check_box = QTableWidgetItem()
+            check_box.setFlags(Qt.ItemFlag.ItemIsUserCheckable | Qt.ItemFlag.ItemIsEnabled)
+            check_box.setCheckState(Qt.CheckState.Unchecked)
+            self.data_table.setItem(row, 0, check_box)
+            
             # 日期
             date_item = QTableWidgetItem(report.get('reportDate', '-'))
-            self.data_table.setItem(row, 0, date_item)
+            self.data_table.setItem(row, 1, date_item)
             
-            # 项目名称
-            project_item = QTableWidgetItem(report.get('projectName', '-'))
-            self.data_table.setItem(row, 1, project_item)
+            # 填报人名称（原项目名称）
+            reporter_item = QTableWidgetItem(report.get('reporterName', '-'))  # ✅ 改为 reporterName
+            self.data_table.setItem(row, 2, reporter_item)
             
             # 进度状态
             progress = report.get('overallProgress', 'normal')
@@ -666,25 +723,25 @@ class UploadWidget(QWidget):
             progress_item = QTableWidgetItem(progress_text)
             progress_item.setForeground(progress_colors.get(progress, QColor(0, 0, 0)))
             progress_item.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-            self.data_table.setItem(row, 2, progress_item)
+            self.data_table.setItem(row, 3, progress_item)
             
             # 任务数
             task_count = len(report.get('taskProgressList', []))
             task_item = QTableWidgetItem(str(task_count))
             task_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.data_table.setItem(row, 3, task_item)
+            self.data_table.setItem(row, 4, task_item)
             
             # 人员数
             worker_count = report.get('onSitePersonnelCount', 0)
             worker_item = QTableWidgetItem(str(worker_count))
             worker_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.data_table.setItem(row, 4, worker_item)
+            self.data_table.setItem(row, 5, worker_item)
             
             # 机械数
             machinery_count = len(report.get('machineryRentals', []))
             machinery_item = QTableWidgetItem(str(machinery_count))
             machinery_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.data_table.setItem(row, 5, machinery_item)
+            self.data_table.setItem(row, 6, machinery_item)
             
             # 问题数
             problem_count = len(report.get('problemFeedbacks', []))
@@ -694,19 +751,67 @@ class UploadWidget(QWidget):
             if problem_count > 0:
                 problem_item.setForeground(QColor(244, 67, 54))
                 problem_item.setFont(QFont("Arial", 10, QFont.Weight.Bold))
-            self.data_table.setItem(row, 6, problem_item)
+            self.data_table.setItem(row, 7, problem_item)
             
             # 天气
             weather = report.get('weather', '-')
             weather_item = QTableWidgetItem(weather)
             weather_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.data_table.setItem(row, 7, weather_item)
+            self.data_table.setItem(row, 8, weather_item)
+        
+        # ✅ 新增：监听勾选状态变化
+        self.data_table.itemChanged.connect(self.update_upload_button_text)
+        
+        # ✅ 新增：更新按钮文本
+        self.update_upload_button_text()
+    
+    def update_upload_button_text(self):
+        """更新上传按钮文本，显示勾选数量"""
+        checked_count = 0
+        for row in range(self.data_table.rowCount()):
+            item = self.data_table.item(row, 0)
+            if item and item.checkState() == Qt.CheckState.Checked:
+                checked_count += 1
+        
+        total_count = len(self.parsed_reports)
+        if checked_count == 0:
+            self.upload_button.setText("开始上传")
+            self.upload_button.setEnabled(False)
+        else:
+            self.upload_button.setText(f"开始上传 ({checked_count}/{total_count})")
+            self.upload_button.setEnabled(True)
+    
+    def select_all_reports(self):
+        """全选所有日报"""
+        for row in range(self.data_table.rowCount()):
+            item = self.data_table.item(row, 0)
+            if item:
+                item.setCheckState(Qt.CheckState.Checked)
+    
+    def deselect_all_reports(self):
+        """反选所有日报"""
+        for row in range(self.data_table.rowCount()):
+            item = self.data_table.item(row, 0)
+            if item:
+                item.setCheckState(Qt.CheckState.Unchecked)
     
     def start_upload(self):
         """开始上传"""
         # 检查是否已预览数据
         if not self.parsed_reports:
             QMessageBox.warning(self, "提示", '请先点击"预览数据"查看解析结果')
+            return
+        
+        # ✅ 新增：收集勾选的日报
+        checked_reports = []
+        for row in range(self.data_table.rowCount()):
+            item = self.data_table.item(row, 0)
+            if item and item.checkState() == Qt.CheckState.Checked:
+                checked_reports.append(self.parsed_reports[row])
+        
+        # ✅ 检查是否有勾选
+        if not checked_reports:
+            QMessageBox.warning(self, "提示", "请勾选要上传的日报")
             return
         
         # 使用当前项目ID
@@ -730,11 +835,11 @@ class UploadWidget(QWidget):
             QMessageBox.warning(self, "提示", "登录状态已失效，请重新登录")
             return
         
-        # 确认上传
+        # ✅ 修改：确认上传的是勾选的日报数量
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Icon.Question)
         msg_box.setWindowTitle("确认上传")
-        msg_box.setText(f"确定要上传 {len(self.parsed_reports)} 条日报记录吗？")
+        msg_box.setText(f"确定要上传选中的 {len(checked_reports)} 条日报记录吗？")
         msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
         msg_box.setDefaultButton(QMessageBox.StandardButton.Yes)
         
@@ -755,15 +860,19 @@ class UploadWidget(QWidget):
         self.clear_button.setEnabled(False)
         self.preview_button.setEnabled(False)
         
-        self.status_label.setText("正在上传...")
+        self.status_label.setText(f"正在上传 {len(checked_reports)} 条日报...")
         
-        # 创建并启动上传线程，使用已解析的数据
+        # 获取是否覆盖旧记录的选项
+        overwrite_existing = self.overwrite_checkbox.isChecked()
+        
+        # ✅ 修改：上传勾选的日报
         self.upload_thread = UploadThread(
-            self.parsed_reports, 
+            checked_reports,  # 只上传勾选的
             project_id, 
             reporter_id, 
             api_base_url, 
-            token
+            token,
+            overwrite_existing
         )
         self.upload_thread.progress_updated.connect(self.on_progress_updated)
         self.upload_thread.upload_success.connect(self.on_upload_success)

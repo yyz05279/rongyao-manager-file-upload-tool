@@ -38,6 +38,7 @@ class UploadService:
         excel_path: str,
         project_id: int,
         reporter_id: int,
+        overwrite_existing: bool = False,
         progress_callback: Optional[Callable[[int], None]] = None
     ) -> Dict:
         """
@@ -46,6 +47,7 @@ class UploadService:
         :param excel_path: Excel文件路径
         :param project_id: 项目ID
         :param reporter_id: 填报人ID
+        :param overwrite_existing: 是否覆盖已存在的记录，默认False
         :param progress_callback: 进度回调函数
         :return: 上传结果字典
         :raises Exception: 上传失败时抛出异常
@@ -69,7 +71,7 @@ class UploadService:
                 progress_callback(30)
             
             # 2. 转换为API格式 (30-40%)
-            api_data = convert_to_api_format(all_reports, project_id, reporter_id)
+            api_data = convert_to_api_format(all_reports, project_id, reporter_id, overwrite_existing)
             
             if progress_callback:
                 progress_callback(40)

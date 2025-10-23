@@ -134,6 +134,60 @@ class ConfigService:
         """
         return self._config.get('expires_at')
     
+    def save_user_info(self, user_info: Dict):
+        """
+        保存用户信息到本地缓存
+        
+        :param user_info: 用户信息字典，应包含以下字段：
+                         - id: 用户ID
+                         - username: 用户名
+                         - name: 用户姓名
+                         - email: 邮箱
+                         - role: 角色
+                         - token: 访问Token
+                         - refreshToken: 刷新Token
+                         - expiresAt: Token过期时间
+        """
+        if not user_info:
+            return
+        
+        self._config['user_info'] = {
+            'id': user_info.get('id'),
+            'username': user_info.get('username'),
+            'name': user_info.get('name'),
+            'email': user_info.get('email'),
+            'role': user_info.get('role'),
+        }
+        
+        # 同时保存Token相关信息
+        if user_info.get('token'):
+            self._config['token'] = user_info.get('token')
+        if user_info.get('refreshToken'):
+            self._config['refresh_token'] = user_info.get('refreshToken')
+        if user_info.get('expiresAt'):
+            self._config['expires_at'] = user_info.get('expiresAt')
+        
+        self._save_config()
+    
+    def get_user_info(self) -> Optional[Dict]:
+        """
+        获取缓存的用户信息
+        
+        :return: 用户信息字典或None
+        """
+        user_info = self._config.get('user_info')
+        if user_info:
+            # 添加Token信息到用户信息中
+            user_info['token'] = self._config.get('token')
+            user_info['refreshToken'] = self._config.get('refresh_token')
+            user_info['expiresAt'] = self._config.get('expires_at')
+        return user_info
+    
+    def clear_user_info(self):
+        """清除缓存的用户信息"""
+        self._config.pop('user_info', None)
+        self._save_config()
+    
     def clear_token(self):
         """清除Token信息"""
         self._config.pop('token', None)

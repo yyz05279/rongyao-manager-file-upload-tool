@@ -35,7 +35,7 @@ class DailyReportExcelParser:
             
         report_data = {
             "reportDate": sheet_name if sheet_name else ws.title,
-            "projectName": self._get_cell_value(ws, 1, 1).replace("项目工作日报", "").strip(),
+            "reporterName": self._get_cell_value(ws, 1, 1).replace("项目工作日报", "").strip(),  # ✅ 改为 reporterName
             "overallProgress": None,
             "progressDescription": None,
             "taskProgressList": [],
@@ -69,20 +69,20 @@ class DailyReportExcelParser:
         # 解析明天工作计划 (第6行开始，只保留序号3.x)
         report_data["tomorrowPlans"] = self._parse_tomorrow_plans(ws, start_row=6, end_row=20)
         
-        # 解析各工种工作汇报 (第23行开始)
-        report_data["workerReports"] = self._parse_worker_reports(ws, start_row=23, end_row=38)
+        # 解析各工种工作汇报 (从第20行开始扫描，自动检测"二"区域)
+        report_data["workerReports"] = self._parse_worker_reports(ws, start_row=20, end_row=70)
         
         # 统计现场总人数
         report_data["onSitePersonnelCount"] = len([w for w in report_data["workerReports"] if w.get("name")])
         
-        # 解析机械租赁情况 (第41行开始)
-        report_data["machineryRentals"] = self._parse_machinery_rentals(ws, start_row=41, end_row=45)
+        # 解析机械租赁情况 (从第20行开始扫描，自动检测"三"区域)
+        report_data["machineryRentals"] = self._parse_machinery_rentals(ws, start_row=20, end_row=70)
         
-        # 解析问题反馈 (第48行开始，只保留序号1.x)
-        report_data["problemFeedbacks"] = self._parse_problem_feedbacks(ws, start_row=48, end_row=65)
+        # 解析问题反馈 (从第20行开始扫描，自动检测"四"区域，只保留序号1.x)
+        report_data["problemFeedbacks"] = self._parse_problem_feedbacks(ws, start_row=20, end_row=80)
         
-        # 解析需求描述 (第48行开始，只保留序号2.x)
-        report_data["requirements"] = self._parse_requirements(ws, start_row=48, end_row=65)
+        # 解析需求描述 (从第20行开始扫描，自动检测"四"区域，只保留序号2.x)
+        report_data["requirements"] = self._parse_requirements(ws, start_row=20, end_row=80)
         
         return report_data
     
@@ -138,11 +138,31 @@ class DailyReportExcelParser:
         return plans
     
     def _parse_worker_reports(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析各工种工作汇报"""
+        """解析各工种工作汇报（区域二）"""
         workers = []
+        in_target_area = False  # 是否进入目标区域（二）
+        
         for i in range(start_row, end_row + 1):
             seq_no = self._get_cell_value(ws, i, 1)
             name = self._get_cell_value(ws, i, 2)
+            
+            # 检测区域标题
+            if seq_no == '二':
+                in_target_area = True
+                continue  # 跳过标题行
+            
+            # 遇到下一个区域标题，停止解析
+            if seq_no in ['三', '四', '五'] and in_target_area:
+                break
+            
+            # 只在目标区域内解析数据
+            if not in_target_area:
+                continue
+            
+            # 跳过表头行
+            if name in ['姓名', '序号']:
+                continue
+            
             job_type = self._get_cell_value(ws, i, 3)
             worker_type = self._get_cell_value(ws, i, 4)
             work_content = self._get_cell_value(ws, i, 5)
@@ -161,11 +181,31 @@ class DailyReportExcelParser:
         return workers
     
     def _parse_machinery_rentals(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析机械租赁情况"""
+        """解析机械租赁情况（区域三）"""
         machinery = []
+        in_target_area = False  # 是否进入目标区域（三）
+        
         for i in range(start_row, end_row + 1):
             seq_no = self._get_cell_value(ws, i, 1)
             machine_name = self._get_cell_value(ws, i, 2)
+            
+            # 检测区域标题
+            if seq_no == '三':
+                in_target_area = True
+                continue  # 跳过标题行
+            
+            # 遇到下一个区域标题，停止解析
+            if seq_no in ['四', '五', '六'] and in_target_area:
+                break
+            
+            # 只在目标区域内解析数据
+            if not in_target_area:
+                continue
+            
+            # 跳过表头行
+            if machine_name in ['机械名称', '序号']:
+                continue
+            
             quantity = self._get_cell_value(ws, i, 3)
             tonnage = self._get_cell_value(ws, i, 4)
             usage = self._get_cell_value(ws, i, 5)
@@ -186,17 +226,41 @@ class DailyReportExcelParser:
         return machinery
     
     def _parse_problem_feedbacks(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析问题反馈（序号1.x）"""
+        """解析问题反馈（区域四 -> 序号1.x）"""
         problems = []
+        in_target_area = False  # 是否进入目标区域（四）
+        
         for i in range(start_row, end_row + 1):
             problem_no = self._get_cell_value(ws, i, 1)
             description = self._get_cell_value(ws, i, 2)
+            
+            # 检测区域标题
+            if problem_no == '四':
+                in_target_area = True
+                continue  # 跳过标题行
+            
+            # 遇到下一个区域标题，停止解析
+            if problem_no in ['五', '六'] and in_target_area:
+                break
+            
+            # 只在目标区域内解析数据
+            if not in_target_area:
+                continue
+            
+            # 跳过表头行和子标题行
+            if description in ['问题描述', '问题反馈', '序号']:
+                continue
+            
+            # 跳过子标题行（序号为"1"且内容为"问题描述"）
+            if problem_no == '1':
+                continue
+            
             reason = self._get_cell_value(ws, i, 4)
             impact = self._get_cell_value(ws, i, 5)
             progress = self._get_cell_value(ws, i, 6)
             
-            # 只保存有问题描述且序号以"1."开头的记录
-            if description and problem_no.startswith("1."):
+            # 保存有问题描述且序号为纯数字（2、3、4...）的记录
+            if description and problem_no.isdigit():
                 problems.append({
                     "problemNo": problem_no,
                     "description": description,
@@ -207,16 +271,46 @@ class DailyReportExcelParser:
         return problems
     
     def _parse_requirements(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析需求描述（序号2.x）"""
+        """解析需求描述（区域四 -> 子区域2）"""
         requirements = []
+        in_target_area = False  # 是否进入目标区域（四）
+        in_requirements_section = False  # 是否进入需求描述子区域（2）
+        
         for i in range(start_row, end_row + 1):
             req_no = self._get_cell_value(ws, i, 1)
             description = self._get_cell_value(ws, i, 2)
+            
+            # 检测区域标题
+            if req_no == '四':
+                in_target_area = True
+                continue  # 跳过标题行
+            
+            # 遇到下一个区域标题，停止解析
+            if req_no in ['五', '六'] and in_target_area:
+                break
+            
+            # 只在目标区域内解析数据
+            if not in_target_area:
+                continue
+            
+            # 检测需求描述子标题（序号为"2"且内容为"需求描述"）
+            if req_no == '2' and description in ['需求描述', '需求']:
+                in_requirements_section = True
+                continue  # 跳过子标题行
+            
+            # 只在需求描述子区域内解析数据
+            if not in_requirements_section:
+                continue
+            
+            # 跳过表头行
+            if description in ['需求描述', '问题反馈', '序号']:
+                continue
+            
             urgency_level = self._get_cell_value(ws, i, 4)
             expected_time = self._get_cell_value(ws, i, 6)
             
-            # 只保存有需求描述且序号以"2."开头的记录
-            if description and req_no.startswith("2."):
+            # 保存有需求描述的记录（任何有内容的行）
+            if description:
                 requirements.append({
                     "requirementNo": req_no,
                     "description": description,
@@ -309,7 +403,7 @@ def main():
         # 输出统计信息
         for report in all_reports:
             print(f"\n日期: {report['reportDate']}")
-            print(f"  - 项目名称: {report['projectName']}")
+            print(f"  - 项目名称: {report['reporterName']}")
             print(f"  - 整体进度: {report['overallProgress']}")
             print(f"  - 进度描述: {report['progressDescription']}")
             print(f"  - 任务数量: {len(report['taskProgressList'])}")

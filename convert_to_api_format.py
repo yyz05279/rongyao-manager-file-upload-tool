@@ -8,13 +8,14 @@ import json
 import sys
 
 
-def convert_to_api_format(parsed_data, project_id, reporter_id):
+def convert_to_api_format(parsed_data, project_id, reporter_id, overwrite_existing=False):
     """
     将解析后的JSON转换为API批量导入格式
     
     :param parsed_data: 解析后的日报数据列表
     :param project_id: 项目ID
     :param reporter_id: 填报人ID
+    :param overwrite_existing: 是否覆盖已存在的记录，默认False
     :return: API格式的数据
     """
     reports = []
@@ -23,9 +24,9 @@ def convert_to_api_format(parsed_data, project_id, reporter_id):
         # 转换单个日报数据
         api_report = {
             "reportDate": report.get("reportDate", ""),
-            "projectName": report.get("projectName", ""),
+            "reporterName": report.get("reporterName", ""),  # ✅ 改为 reporterName（从 projectName）
             "overallProgress": report.get("overallProgress", "normal"),
-            "progressDescription": report.get("progressDescription", ""),
+            "progressDescription": report.get("progressDescription", ""),  # ✅ 保留 progressDescription
             "taskProgressList": json.dumps(report.get("taskProgressList", []), ensure_ascii=False),
             "tomorrowPlans": json.dumps(report.get("tomorrowPlans", []), ensure_ascii=False),
             "workerReports": json.dumps(report.get("workerReports", []), ensure_ascii=False),
@@ -43,6 +44,7 @@ def convert_to_api_format(parsed_data, project_id, reporter_id):
     api_data = {
         "projectId": project_id,
         "reporterId": reporter_id,
+        "overwriteExisting": overwrite_existing,  # 新增字段
         "reports": reports
     }
     
