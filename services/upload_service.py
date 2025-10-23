@@ -5,6 +5,10 @@
 处理日报Excel文件的解析和上传
 """
 
+import warnings
+# 忽略urllib3的OpenSSL警告
+warnings.filterwarnings('ignore', message='urllib3 v2 only supports OpenSSL 1.1.1+')
+
 import json
 import tempfile
 from typing import Dict, Callable, Optional
@@ -14,14 +18,20 @@ import requests
 
 from parse_daily_report_excel import DailyReportExcelParser
 from convert_to_api_format import convert_to_api_format
-from services.auth_service import AuthService
 
 
 class UploadService:
     """上传服务类"""
     
-    def __init__(self):
-        self.auth_service = AuthService()
+    def __init__(self, api_base_url: str = None, token: str = None):
+        """
+        初始化上传服务
+        
+        :param api_base_url: API基础URL
+        :param token: 认证Token
+        """
+        self.api_base_url = api_base_url
+        self.token = token
     
     def upload_daily_report_excel(
         self,
@@ -41,7 +51,7 @@ class UploadService:
         :raises Exception: 上传失败时抛出异常
         """
         # 检查登录状态
-        if not self.auth_service.is_logged_in():
+        if not self.token or not self.api_base_url:
             raise Exception('未登录，请先登录')
         
         try:
@@ -87,18 +97,15 @@ class UploadService:
         :param progress_callback: 进度回调函数
         :return: 导入结果
         """
-        api_base_url = self.auth_service.get_api_base_url()
-        token = self.auth_service.get_token()
-        
-        if not api_base_url or not token:
+        if not self.api_base_url or not self.token:
             raise Exception('未登录或登录已过期')
         
         # 构建API URL
-        import_url = f"{api_base_url}/api/v1/daily-reports/batch-import"
+        import_url = f"{self.api_base_url}/api/v1/daily-reports/batch-import"
         
         # 请求头
         headers = {
-            'Authorization': f'Bearer {token}',
+            'Authorization': f'Bearer {self.token}',
             'Content-Type': 'application/json'
         }
         

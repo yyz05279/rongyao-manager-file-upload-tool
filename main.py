@@ -8,6 +8,11 @@
 import sys
 import os
 import traceback
+import warnings
+
+# 忽略urllib3的OpenSSL警告
+warnings.filterwarnings('ignore', message='urllib3 v2 only supports OpenSSL 1.1.1+')
+
 from PyQt6.QtWidgets import QApplication, QMessageBox
 from PyQt6.QtCore import Qt
 
@@ -52,7 +57,31 @@ def main():
             app = QApplication.instance()
             if app is None:
                 app = QApplication(sys.argv)
-            QMessageBox.critical(None, "启动错误", error_msg)
+            
+            msg_box = QMessageBox()
+            msg_box.setIcon(QMessageBox.Icon.Critical)
+            msg_box.setWindowTitle("启动错误")
+            msg_box.setText(error_msg)
+            msg_box.setStyleSheet("""
+                QMessageBox {
+                    background-color: white;
+                }
+                QMessageBox QLabel {
+                    color: #000000;
+                    font-size: 14px;
+                    min-width: 400px;
+                }
+                QPushButton {
+                    background-color: #f44336;
+                    color: white;
+                    border: none;
+                    border-radius: 3px;
+                    padding: 6px 16px;
+                    font-size: 13px;
+                    min-width: 70px;
+                }
+            """)
+            msg_box.exec()
         except:
             pass
         

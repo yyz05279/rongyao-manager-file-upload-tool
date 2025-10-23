@@ -1,8 +1,8 @@
 #!/bin/bash
-# macOS打包脚本
+# macOS打包脚本（修复版 - 解决闪退问题）
 
 echo "===================================="
-echo "熔盐管理文件上传工具 - macOS打包"
+echo "熔盐管理文件上传工具 - macOS打包（修复版）"
 echo "===================================="
 echo ""
 
@@ -13,14 +13,28 @@ if [ $? -ne 0 ]; then
     pip3 install PyInstaller
 fi
 
-echo "[1/3] 清理旧的构建文件..."
+echo "[1/4] 清理旧的构建文件..."
 rm -rf build dist "熔盐管理文件上传工具.spec"
 
-echo "[2/3] 开始打包..."
-pyinstaller --onefile \
-    --windowed \
+echo "[2/4] 获取PyQt6插件路径..."
+PYQT6_PATH=$(python3 -c "import PyQt6; import os; print(os.path.dirname(PyQt6.__file__))")
+echo "PyQt6路径: $PYQT6_PATH"
+
+echo "[3/4] 开始打包（使用--onedir模式，更稳定）..."
+pyinstaller \
     --name="熔盐管理文件上传工具" \
+    --windowed \
+    --onedir \
     --clean \
+    --noconfirm \
+    --add-data "parse_daily_report_excel.py:." \
+    --add-data "convert_to_api_format.py:." \
+    --hidden-import "PyQt6.QtCore" \
+    --hidden-import "PyQt6.QtGui" \
+    --hidden-import "PyQt6.QtWidgets" \
+    --hidden-import "openpyxl" \
+    --hidden-import "requests" \
+    --collect-all PyQt6 \
     main.py
 
 if [ $? -ne 0 ]; then
@@ -29,7 +43,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "[3/3] 打包完成！"
+echo "[4/4] 打包完成！"
 
 echo ""
 echo "===================================="
@@ -37,10 +51,10 @@ echo "打包成功！"
 echo "应用程序位置：dist/熔盐管理文件上传工具.app"
 echo "===================================="
 echo ""
-
-# 提示如何运行
-echo "运行方式："
-echo "1. 双击 dist/熔盐管理文件上传工具.app"
-echo "2. 或执行：open dist/熔盐管理文件上传工具.app"
+echo "测试运行："
+echo "  open dist/熔盐管理文件上传工具.app"
+echo ""
+echo "如果仍有问题，请在终端直接运行查看错误："
+echo "  dist/熔盐管理文件上传工具.app/Contents/MacOS/熔盐管理文件上传工具"
 echo ""
 

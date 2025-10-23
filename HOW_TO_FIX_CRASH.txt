@@ -10,8 +10,8 @@
 第1步：打开终端，进入项目目录
 cd "/Users/yyz/Desktop/熔盐管理文件上传工具"
 
-第2步：运行修复版打包脚本
-./build_macos_fixed.sh
+第2步：运行打包脚本
+./build_macos.sh
 
 第3步：测试应用
 open dist/熔盐管理文件上传工具.app
@@ -51,6 +51,6 @@ README.md     - 完整使用手册
              立即开始修复！
 ===============================================
 
-./build_macos_fixed.sh
+./build_macos.sh
 
 

@@ -57,13 +57,13 @@ pyinstaller --onefile --windowed --name="熔盐管理文件上传工具" main.py
 #### macOS 系统
 
 ```bash
-# 推荐：使用修复版打包脚本（解决闪退问题）
-chmod +x build_macos_fixed.sh
-./build_macos_fixed.sh
-
-# 或使用原版打包脚本
+# 使用打包脚本（已优化，解决闪退问题）
 chmod +x build_macos.sh
 ./build_macos.sh
+
+# 如果需要调试，使用调试版
+chmod +x build_macos_debug.sh
+./build_macos_debug.sh
 ```
 
 **⚠️ 如果打包后应用闪退，请查看：**
@@ -212,8 +212,8 @@ xattr -cr "dist/熔盐管理文件上传工具.app"
 **A**: 这是 PyQt6 打包的常见问题，请使用修复版：
 
 ```bash
-# 1. 使用修复版打包脚本
-./build_macos_fixed.sh
+# 1. 使用打包脚本
+./build_macos.sh
 
 # 2. 如果还是失败，运行调试版查看错误
 ./build_macos_debug.sh

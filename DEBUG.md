@@ -6,14 +6,14 @@
 
 ## 🎯 解决方案
 
-### 方案一：使用修复版打包脚本（推荐）
+### 方案一：使用打包脚本（推荐）
 
 ```bash
-chmod +x build_macos_fixed.sh
-./build_macos_fixed.sh
+chmod +x build_macos.sh
+./build_macos.sh
 ```
 
-**修复内容：**
+**打包特点：**
 
 1. ✅ 改用`--onedir`模式（更稳定）
 2. ✅ 添加了所有必要的 Qt 插件
@@ -120,7 +120,7 @@ python3 -c "import requests; print('requests OK')"
 
 ## 📝 打包参数说明
 
-### 推荐配置（修复版）
+### 推荐配置
 
 ```bash
 pyinstaller \
@@ -217,8 +217,8 @@ sw_vers
 **快速修复命令：**
 
 ```bash
-# 1. 使用修复版打包
-./build_macos_fixed.sh
+# 1. 使用打包脚本
+./build_macos.sh
 
 # 2. 如果失败，查看详细错误
 ./build_macos_debug.sh
