@@ -57,6 +57,8 @@ class DailyReportDetailDialog(QDialog):
                 border: none;
                 border-radius: 0px;
                 background: transparent;
+                margin: 0px;
+                padding: 0px;
             }
             QTabBar::tab {
                 background: #f5f5f5;
@@ -75,6 +77,7 @@ class DailyReportDetailDialog(QDialog):
                 background: #e3f2fd;
             }
         """)
+        tab_widget.setContentsMargins(0, 0, 0, 0)
         
         # 添加各个选项卡
         tab_widget.addTab(self.create_task_progress_tab(), "📋 逐项进度汇报")
