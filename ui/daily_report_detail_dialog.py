@@ -252,7 +252,8 @@ class DailyReportDetailDialog(QDialog):
         """创建任务进度选项卡"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         tasks = self.report_data.get('taskProgressList', [])
         
@@ -289,7 +290,8 @@ class DailyReportDetailDialog(QDialog):
         """创建明日计划选项卡"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         plans = self.report_data.get('tomorrowPlans', [])
         
@@ -324,7 +326,8 @@ class DailyReportDetailDialog(QDialog):
         """创建人员报告选项卡"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         workers = self.report_data.get('workerReports', [])
         
@@ -359,7 +362,8 @@ class DailyReportDetailDialog(QDialog):
         """创建机械租赁选项卡"""
         widget = QWidget()
         layout = QVBoxLayout(widget)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
         machinery = self.report_data.get('machineryRentals', [])
         
@@ -372,9 +376,9 @@ class DailyReportDetailDialog(QDialog):
         
         table = QTableWidget()
         table.setRowCount(len(machinery))
-        table.setColumnCount(7)
+        table.setColumnCount(6)
         table.setHorizontalHeaderLabels([
-            "序号", "机械名称", "数量", "吨位", "用途", "合班", "备注"
+            "序号", "机械名称", "数量", "吨位", "用途", "班次"
         ])
         
         self._setup_table_style(table)
@@ -386,7 +390,6 @@ class DailyReportDetailDialog(QDialog):
             table.setItem(row, 3, QTableWidgetItem(item.get('tonnage', '-')))
             table.setItem(row, 4, QTableWidgetItem(item.get('usage', '-')))
             table.setItem(row, 5, QTableWidgetItem(item.get('shift', '-')))
-            table.setItem(row, 6, QTableWidgetItem(item.get('remarks', '-')))
         
         layout.addWidget(table)
         return widget
