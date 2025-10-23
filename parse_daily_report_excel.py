@@ -125,10 +125,9 @@ class DailyReportExcelParser:
             required_resources = self._get_cell_value(ws, i, 6)
             remarks = self._get_cell_value(ws, i, 7)
             
-            # 只保存有内容且序号以"3."开头的计划
+            # 只保存有内容且序号以"3."开头的计划（不保存planNo，但保留taskName）
             if task_name and plan_no.startswith("3."):
                 plans.append({
-                    "planNo": plan_no,
                     "taskName": task_name,
                     "goal": goal,
                     "responsiblePerson": responsible_person,
@@ -248,7 +247,7 @@ class DailyReportExcelParser:
                 continue
             
             # 跳过表头行和子标题行
-            if description in ['问题描述', '问题反馈', '序号']:
+            if description in ['问题描述', '问题反馈', '序号', '需求描述']:
                 continue
             
             # 跳过子标题行（序号为"1"且内容为"问题描述"）

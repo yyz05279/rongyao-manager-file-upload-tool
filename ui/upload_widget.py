@@ -41,6 +41,8 @@ class UploadThread(QThread):
     
     def run(self):
         """执行上传"""
+        import json
+        
         try:
             # 发送进度
             self.progress_updated.emit(10)
@@ -52,6 +54,13 @@ class UploadThread(QThread):
                 self.reporter_id,
                 self.overwrite_existing
             )
+            
+            # 输出请求体到控制台
+            print("\n" + "="*80)
+            print("📤 发送上传请求 - API请求体")
+            print("="*80)
+            print(json.dumps(api_data, indent=2, ensure_ascii=False))
+            print("="*80 + "\n")
             
             self.progress_updated.emit(30)
             
@@ -70,6 +79,18 @@ class UploadThread(QThread):
             
             self.progress_updated.emit(80)
             
+            # 输出原始响应到控制台
+            print("\n" + "="*80)
+            print("📥 收到服务器响应 - 原始响应数据")
+            print("="*80)
+            response_text = response.text if hasattr(response, 'text') else str(response)
+            try:
+                response_json = json.loads(response_text)
+                print(json.dumps(response_json, indent=2, ensure_ascii=False))
+            except:
+                print(response_text)
+            print("="*80 + "\n")
+            
             # 使用基础服务解析响应
             data = base_service.parse_response(response, expected_code=1)
             
@@ -87,6 +108,14 @@ class UploadThread(QThread):
             self.upload_success.emit(upload_result)
             
         except Exception as e:
+            import traceback
+            # 输出详细的错误堆栈信息
+            error_detail = traceback.format_exc()
+            print("\n" + "="*80)
+            print("❌ 上传错误 - 异常堆栈")
+            print("="*80)
+            print(error_detail)
+            print("="*80 + "\n")
             self.upload_failed.emit(str(e))
 
 
@@ -584,9 +613,15 @@ class UploadWidget(QWidget):
             
             self.status_label.setText(f'已添加文件: {file_info.fileName()}，正在解析...')
             
-            # ✅ 新增：自动执行预览数据
-            self.preview_button.setEnabled(True)
-            QApplication.processEvents()  # 更新UI
+            # ✅ 在调用preview_data之前显示加载动画
+            self.loading_label.setVisible(True)
+            self.preview_button.setEnabled(False)
+            self.select_all_button.setEnabled(False)
+            self.deselect_all_button.setEnabled(False)
+            
+            QApplication.processEvents()  # 更新UI，显示加载动画
+            
+            # 自动执行预览数据
             self.preview_data()  # 直接调用预览
     
     def clear_file_list(self):
@@ -623,10 +658,14 @@ class UploadWidget(QWidget):
         """预览数据"""
         if not self.selected_files:
             QMessageBox.warning(self, "提示", "请先添加文件")
+            # 隐藏加载动画
+            self.loading_label.setVisible(False)
             return
         
-        # ✅ 显示加载动画
-        self.loading_label.setVisible(True)
+        # ✅ 修改：只在第一次调用时显示加载动画，避免重复显示
+        # （在add_files中已经显示过了）
+        if not self.loading_label.isVisible():
+            self.loading_label.setVisible(True)
         
         # 禁用预览按钮
         self.preview_button.setEnabled(False)
@@ -663,7 +702,7 @@ class UploadWidget(QWidget):
             self.upload_button.setEnabled(True)
             self.status_label.setText(f"解析完成，共 {len(self.parsed_reports)} 条日报记录")
             
-            # ✅ 隐藏加载动画
+            # ✅ 解析完成后隐藏加载动画
             self.loading_label.setVisible(False)
             
             QMessageBox.information(
@@ -677,7 +716,7 @@ class UploadWidget(QWidget):
             self.status_label.setText(f"解析失败：{str(e)}")
         
         finally:
-            # ✅ 隐藏加载动画
+            # ✅ 确保加载动画最后被隐藏
             self.loading_label.setVisible(False)
             
             # 恢复预览按钮
@@ -886,6 +925,15 @@ class UploadWidget(QWidget):
     
     def on_upload_success(self, result: dict):
         """上传成功"""
+        import json
+        
+        # 完整输出后台返回的数据到控制台
+        print("\n" + "="*80)
+        print("✅ 上传成功 - 完整的后台响应数据")
+        print("="*80)
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+        print("="*80 + "\n")
+        
         success_count = result.get('successCount', 0)
         failed_count = result.get('failedCount', 0)
         total_count = result.get('totalCount', 0)
@@ -894,6 +942,14 @@ class UploadWidget(QWidget):
         message += f"总计：{total_count} 条\n"
         message += f"成功：{success_count} 条\n"
         message += f"失败：{failed_count} 条"
+        
+        # 如果有失败的记录，添加详细信息
+        failed_reports = result.get('failedReports', [])
+        if failed_reports:
+            message += f"\n\n失败详情："
+            for report in failed_reports:
+                message += f"\n- 日期: {report.get('reportDate', '-')}"
+                message += f"  原因: {report.get('reason', '-')}"
         
         QMessageBox.information(self, "上传成功", message)
         self.status_label.setText(f"上传完成：成功 {success_count} 条，失败 {failed_count} 条")
@@ -907,6 +963,13 @@ class UploadWidget(QWidget):
     
     def on_upload_failed(self, error_message: str):
         """上传失败"""
+        # 完整输出错误信息到控制台
+        print("\n" + "="*80)
+        print("❌ 上传失败 - 错误信息")
+        print("="*80)
+        print(error_message)
+        print("="*80 + "\n")
+        
         msg_box = QMessageBox(self)
         msg_box.setIcon(QMessageBox.Icon.Critical)
         msg_box.setWindowTitle("上传失败")

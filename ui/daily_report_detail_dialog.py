@@ -412,13 +412,8 @@ class DailyReportDetailDialog(QDialog):
         
         scroll.setWidget(container)
         
-        # 外层 widget
-        outer_widget = QWidget()
-        outer_layout = QVBoxLayout(outer_widget)
-        outer_layout.setContentsMargins(0, 0, 0, 0)
-        outer_layout.addWidget(scroll)
-        
-        return outer_widget
+        # ✅ 直接返回 QScrollArea，移除父视图包装
+        return scroll
     
     def _create_problems_group(self):
         """创建问题反馈分组"""
@@ -552,8 +547,8 @@ class DailyReportDetailDialog(QDialog):
         """设置表格样式"""
         table.setStyleSheet("""
             QTableWidget {
-                border: 1px solid #e0e0e0;
-                background-color: white;
+                border: none;
+                background-color: transparent;
                 gridline-color: #e0e0e0;
             }
             QTableWidget::item {
