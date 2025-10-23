@@ -54,9 +54,9 @@ class DailyReportDetailDialog(QDialog):
         tab_widget = QTabWidget()
         tab_widget.setStyleSheet("""
             QTabWidget::pane {
-                border: 2px solid #e0e0e0;
-                border-radius: 5px;
-                background: white;
+                border: none;
+                border-radius: 0px;
+                background: transparent;
             }
             QTabBar::tab {
                 background: #f5f5f5;
