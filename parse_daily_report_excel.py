@@ -125,9 +125,10 @@ class DailyReportExcelParser:
             required_resources = self._get_cell_value(ws, i, 6)
             remarks = self._get_cell_value(ws, i, 7)
             
-            # 只保存有内容且序号以"3."开头的计划（不保存planNo，但保留taskName）
+            # 只保存有内容且序号以"3."开头的计划
             if task_name and plan_no.startswith("3."):
                 plans.append({
+                    "planNo": plan_no,  # ✅ 添加序号显示
                     "taskName": task_name,
                     "goal": goal,
                     "responsiblePerson": responsible_person,
@@ -225,7 +226,7 @@ class DailyReportExcelParser:
         return machinery
     
     def _parse_problem_feedbacks(self, ws, start_row: int, end_row: int) -> List[Dict]:
-        """解析问题反馈（区域四 -> 序号1.x）"""
+        """解析问题反馈（区域四 -> 问题数据）"""
         problems = []
         in_target_area = False  # 是否进入目标区域（四）
         
@@ -250,7 +251,7 @@ class DailyReportExcelParser:
             if description in ['问题描述', '问题反馈', '序号', '需求描述']:
                 continue
             
-            # 跳过子标题行（序号为"1"且内容为"问题描述"）
+            # 跳过子标题行（序号为"1"）
             if problem_no == '1':
                 continue
             
@@ -258,8 +259,13 @@ class DailyReportExcelParser:
             impact = self._get_cell_value(ws, i, 5)
             progress = self._get_cell_value(ws, i, 6)
             
-            # 保存有问题描述且序号为纯数字（2、3、4...）的记录
-            if description and problem_no.isdigit():
+            # ✅ 修改：支持两种格式
+            # 1. 纯数字格式（2、3、4...）- 10-19日之后的格式
+            # 2. "1.x"格式（1.1、1.2...）- 10-19日的格式
+            is_numeric = problem_no.isdigit() and problem_no != '1'
+            is_sub_problem = problem_no.startswith('1.') and len(problem_no) > 2
+            
+            if description and (is_numeric or is_sub_problem):
                 problems.append({
                     "problemNo": problem_no,
                     "description": description,
