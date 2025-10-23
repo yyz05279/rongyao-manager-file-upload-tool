@@ -595,7 +595,7 @@ class DailyReportDetailDialog(QDialog):
         
         # 调整表格高度以适应内容
         table.setSizePolicy(QSizePolicy.Policy.Expanding, 
-                           QSizePolicy.Policy.Minimum)
+                           QSizePolicy.Policy.Expanding)
         
         # 计算并设置表格的最小高度（根据行数）
         row_count = table.rowCount()
@@ -608,5 +608,5 @@ class DailyReportDetailDialog(QDialog):
         
         total_height = header_height + total_row_height + 2  # +2 for border
         table.setMinimumHeight(total_height)
-        table.setMaximumHeight(total_height)
+        # ✅ 移除最大高度限制，让表格自动扩展
 
