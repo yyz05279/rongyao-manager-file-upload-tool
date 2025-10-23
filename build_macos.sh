@@ -20,11 +20,11 @@ echo "[2/4] 获取PyQt6插件路径..."
 PYQT6_PATH=$(python3 -c "import PyQt6; import os; print(os.path.dirname(PyQt6.__file__))")
 echo "PyQt6路径: $PYQT6_PATH"
 
-echo "[3/4] 开始打包（使用--onedir模式，更稳定）..."
+echo "[3/4] 开始打包（使用--onefile模式）..."
 pyinstaller \
     --name="熔盐管理文件上传工具" \
     --windowed \
-    --onedir \
+    --onefile \
     --clean \
     --noconfirm \
     --add-data "parse_daily_report_excel.py:." \
@@ -34,7 +34,7 @@ pyinstaller \
     --hidden-import "PyQt6.QtWidgets" \
     --hidden-import "openpyxl" \
     --hidden-import "requests" \
-    --collect-all PyQt6 \
+    --exclude-module "PyQt6.Qt6" \
     main.py
 
 if [ $? -ne 0 ]; then
