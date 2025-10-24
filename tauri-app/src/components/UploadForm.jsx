@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { open } from "@tauri-apps/api/dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useAuthStore } from "../stores/authStore";
 import { uploadAPI } from "../services/api";
 import "./UploadForm.css";

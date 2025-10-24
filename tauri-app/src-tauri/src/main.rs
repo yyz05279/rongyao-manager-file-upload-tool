@@ -76,6 +76,7 @@ fn greet(name: &str) -> String {
 
 fn main() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
         .manage(AppState {
             auth_service: Arc::new(Mutex::new(None)),
             token: Arc::new(Mutex::new(None)),
