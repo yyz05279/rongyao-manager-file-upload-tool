@@ -125,16 +125,35 @@ let user_info = UserInfo {
 显示用户姓名和角色：
 
 ```jsx
+// 角色映射（参考 Python 代码）
+const roleMap = {
+  ADMIN: "管理员",
+  MANAGER: "项目经理",
+  OPERATOR: "运维人员",
+};
+
+const getRoleText = (role) => {
+  return roleMap[role] || role;
+};
+
+// 显示用户信息
 <div className="user-info">
   <span>
     👤 {userInfo?.name || userInfo?.username}
-    {userInfo?.role && ` (${userInfo.role})`}
+    {userInfo?.role && ` (${getRoleText(userInfo.role)})`}
   </span>
   <button className="btn-logout" onClick={logout}>
     退出
   </button>
-</div>
+</div>;
 ```
+
+**角色转换规则**：
+
+- `ADMIN` → `管理员`
+- `MANAGER` → `项目经理`
+- `OPERATOR` → `运维人员`
+- 其他未知角色保持原样
 
 简化项目信息显示（只显示项目名称）：
 

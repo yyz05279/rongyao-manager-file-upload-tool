@@ -12,6 +12,17 @@ export function UploadForm() {
 
   const { token, userInfo, projectInfo, logout, getProject } = useAuthStore();
 
+  // 角色映射（参考 Python 代码）
+  const roleMap = {
+    'ADMIN': '管理员',
+    'MANAGER': '项目经理',
+    'OPERATOR': '运维人员'
+  };
+
+  const getRoleText = (role) => {
+    return roleMap[role] || role;
+  };
+
   const handleSelectFile = async () => {
     try {
       const file = await open({
@@ -72,7 +83,7 @@ export function UploadForm() {
         <div className="user-info">
           <span>
             👤 {userInfo?.name || userInfo?.username}
-            {userInfo?.role && ` (${userInfo.role})`}
+            {userInfo?.role && ` (${getRoleText(userInfo.role)})`}
           </span>
           <button className="btn-logout" onClick={logout}>
             退出
