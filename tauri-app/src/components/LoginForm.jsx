@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useAuthStore } from "../stores/authStore";
 import "./LoginForm.css";
 
+// 固定的 API 地址
+const API_URL = "http://42.192.76.234:8081";
+
 export function LoginForm({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [apiUrl, setApiUrl] = useState("http://localhost:3000");
   const [localError, setLocalError] = useState("");
 
   const { login, loading } = useAuthStore();
@@ -24,7 +26,7 @@ export function LoginForm({ onLoginSuccess }) {
     }
 
     try {
-      await login(username, password, apiUrl);
+      await login(username, password, API_URL);
       onLoginSuccess?.();
     } catch (err) {
       setLocalError(err.message || "登录失败");
@@ -35,17 +37,6 @@ export function LoginForm({ onLoginSuccess }) {
     <div className="login-container">
       <form onSubmit={handleSubmit} className="login-form">
         <h1>🔐 熔盐管理文件上传工具</h1>
-
-        <div className="form-group">
-          <label>API 服务器</label>
-          <input
-            type="text"
-            value={apiUrl}
-            onChange={(e) => setApiUrl(e.target.value)}
-            placeholder="http://localhost:3000"
-            className="form-input"
-          />
-        </div>
 
         <div className="form-group">
           <label>用户名/手机号</label>
