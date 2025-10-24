@@ -28,6 +28,10 @@ export const uploadAPI = {
     safeInvoke("cmd_upload_file", { filePath, projectId, reporterId }),
 };
 
+export const excelAPI = {
+  parseExcel: (filePath) => safeInvoke("cmd_parse_excel", { filePath }),
+};
+
 export const testAPI = {
   greet: (name) => safeInvoke("greet", { name }),
 };

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAuthStore } from "../stores/authStore";
-import { uploadAPI } from "../services/api";
+import { uploadAPI, excelAPI } from "../services/api";
+import { DataPreview } from "./DataPreview";
 import "./UploadForm.css";
 
 export function UploadForm() {
@@ -9,6 +10,9 @@ export function UploadForm() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const [parsedReports, setParsedReports] = useState([]);
+  const [selectedReports, setSelectedReports] = useState([]);
+  const [parsing, setParsing] = useState(false);
 
   const { token, userInfo, projectInfo, logout, getProject } = useAuthStore();
 
@@ -34,10 +38,56 @@ export function UploadForm() {
       if (file) {
         setFilePath(file);
         setMessage("");
+        // 自动解析 Excel 文件（参考 Python 代码流程）
+        await parseExcelFile(file);
       }
     } catch (err) {
       setMessage(`❌ 选择文件失败: ${err}`);
     }
+  };
+
+  const parseExcelFile = async (path) => {
+    setParsing(true);
+    setMessage("⏳ 正在解析 Excel 文件...");
+    setParsedReports([]);
+    setSelectedReports([]);
+    
+    try {
+      const result = await excelAPI.parseExcel(path);
+      if (result && result.reports) {
+        // 用实际的项目名称替换 Excel 中解析的项目名称（参考 Python 代码）
+        const reportsWithProjectName = result.reports.map(report => ({
+          ...report,
+          reporterName: projectInfo?.name || report.reporterName
+        }));
+        
+        setParsedReports(reportsWithProjectName);
+        setMessage(`✅ 解析成功！找到 ${result.reports.length} 条日报`);
+      } else {
+        setMessage("⚠️ 未找到日报数据");
+      }
+    } catch (err) {
+      setMessage(`❌ 解析失败: ${err.message || err}`);
+      console.error("Excel 解析错误:", err);
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const handleToggleReport = (index) => {
+    setSelectedReports((prev) =>
+      prev.includes(index)
+        ? prev.filter((i) => i !== index)
+        : [...prev, index]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedReports(parsedReports.map((_, idx) => idx));
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedReports([]);
   };
 
   const handleUpload = async () => {
@@ -84,20 +134,17 @@ export function UploadForm() {
           <span>
             👤 {userInfo?.name || userInfo?.username}
             {userInfo?.role && ` (${getRoleText(userInfo.role)})`}
+            {projectInfo && (
+              <span style={{ marginLeft: '20px' }}>
+                | 当前项目: <strong style={{ color: '#FFD700' }}>{projectInfo.name}</strong>
+              </span>
+            )}
           </span>
           <button className="btn-logout" onClick={logout}>
             退出
           </button>
         </div>
       </div>
-
-      {projectInfo && (
-        <div className="project-info">
-          <p>
-            <strong>项目:</strong> {projectInfo.name}
-          </p>
-        </div>
-      )}
 
       <div className="upload-content">
         <div className="file-selector">
@@ -117,16 +164,29 @@ export function UploadForm() {
           </button>
         </div>
 
+        {/* 数据预览表格 */}
+        <DataPreview
+          reports={parsedReports}
+          selectedReports={selectedReports}
+          onToggleReport={handleToggleReport}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+        />
+
         <div className="progress-bar">
           <div className="progress" style={{ width: `${uploadProgress}%` }} />
         </div>
 
         <button
           onClick={handleUpload}
-          disabled={loading || !filePath}
+          disabled={loading || !filePath || selectedReports.length === 0}
           className="btn-upload"
         >
-          {loading ? "上传中..." : "开始上传"}
+          {loading
+            ? "上传中..."
+            : selectedReports.length > 0
+            ? `开始上传 (${selectedReports.length}/${parsedReports.length})`
+            : "开始上传"}
         </button>
 
         {message && (

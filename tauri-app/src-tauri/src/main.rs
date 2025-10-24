@@ -70,6 +70,12 @@ async fn cmd_upload_file(
 }
 
 #[tauri::command]
+async fn cmd_parse_excel(file_path: String) -> Result<serde_json::Value, String> {
+    excel::parse_excel_file(&file_path)
+        .map(|data| serde_json::json!({"reports": data}))
+}
+
+#[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! Welcome to Tauri.", name)
 }
@@ -86,6 +92,7 @@ fn main() {
             cmd_login,
             cmd_get_project,
             cmd_upload_file,
+            cmd_parse_excel,
             greet
         ])
         .run(tauri::generate_context!())
