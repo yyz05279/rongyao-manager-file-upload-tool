@@ -1,4 +1,4 @@
-use calamine::{open_workbook, Reader, Xlsx, DataType};
+use calamine::{open_workbook, Reader, Xlsx};
 use serde_json::{json, Value};
 
 pub fn parse_excel_file(file_path: &str) -> Result<Vec<Value>, String> {
