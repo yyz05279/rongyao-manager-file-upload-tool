@@ -12,8 +12,10 @@ pub struct AuthResponse {
 pub struct UserInfo {
     pub id: i32,
     pub username: String,
+    pub name: String,
     pub email: String,
     pub phone: String,
+    pub role: String,
 }
 
 pub struct AuthService {
@@ -101,11 +103,19 @@ impl AuthService {
                 .as_str()
                 .unwrap_or("")
                 .to_string(),
+            name: result["data"]["user"]["name"]
+                .as_str()
+                .unwrap_or("")
+                .to_string(),
             email: result["data"]["user"]["email"]
                 .as_str()
                 .unwrap_or("")
                 .to_string(),
             phone: result["data"]["user"]["phone"]
+                .as_str()
+                .unwrap_or("")
+                .to_string(),
+            role: result["data"]["user"]["role"]
                 .as_str()
                 .unwrap_or("")
                 .to_string(),

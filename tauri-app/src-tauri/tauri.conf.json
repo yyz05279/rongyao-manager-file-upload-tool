@@ -29,6 +29,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "熔盐管理文件上传工具",
         "width": 1200,
         "height": 800,
@@ -41,7 +42,8 @@
       }
     ],
     "security": {
-      "csp": null
+      "csp": null,
+      "capabilities": ["default"]
     }
   }
 }

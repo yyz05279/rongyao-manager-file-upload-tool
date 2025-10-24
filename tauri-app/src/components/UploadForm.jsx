@@ -70,7 +70,10 @@ export function UploadForm() {
       <div className="upload-header">
         <h1>📤 文件上传</h1>
         <div className="user-info">
-          <span>👤 {userInfo?.username}</span>
+          <span>
+            👤 {userInfo?.name || userInfo?.username}
+            {userInfo?.role && ` (${userInfo.role})`}
+          </span>
           <button className="btn-logout" onClick={logout}>
             退出
           </button>
@@ -81,9 +84,6 @@ export function UploadForm() {
         <div className="project-info">
           <p>
             <strong>项目:</strong> {projectInfo.name}
-          </p>
-          <p>
-            <strong>状态:</strong> {projectInfo.status_display_name}
           </p>
         </div>
       )}
