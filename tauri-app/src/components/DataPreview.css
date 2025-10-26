@@ -106,6 +106,15 @@
   background-color: #f5f5f5;
 }
 
+/* ✅ 双击提示样式 */
+.preview-table tbody tr[style*="pointer"] {
+  cursor: pointer;
+}
+
+.preview-table tbody tr[style*="pointer"]:hover {
+  background-color: #e3f2fd;
+}
+
 .preview-table td {
   padding: 10px 8px;
   text-align: center;

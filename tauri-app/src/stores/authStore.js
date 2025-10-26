@@ -44,12 +44,15 @@ export const useAuthStore = create((set, get) => ({
   },
 
   getProject: async () => {
+    console.log("🔍 [authStore] 开始获取项目信息...");
     set({ loading: true, error: null });
     try {
       const projectInfo = await projectAPI.getMyProject();
+      console.log("✅ [authStore] 项目信息获取成功:", projectInfo);
       set({ projectInfo, loading: false });
       return projectInfo;
     } catch (err) {
+      console.error("❌ [authStore] 项目信息获取失败:", err);
       set({ error: err.message || "获取项目失败", loading: false });
       throw err;
     }

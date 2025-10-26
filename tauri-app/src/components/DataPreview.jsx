@@ -1,7 +1,7 @@
 import React from "react";
 import "./DataPreview.css";
 
-export function DataPreview({ reports, selectedReports, onToggleReport, onSelectAll, onDeselectAll }) {
+export function DataPreview({ reports, selectedReports, onToggleReport, onSelectAll, onDeselectAll, onRowDoubleClick }) {
   if (!reports || reports.length === 0) {
     return (
       <div className="preview-empty">
@@ -57,8 +57,12 @@ export function DataPreview({ reports, selectedReports, onToggleReport, onSelect
           </thead>
           <tbody>
             {reports.map((report, idx) => (
-              <tr key={idx}>
-                <td>
+              <tr 
+                key={idx}
+                onDoubleClick={() => onRowDoubleClick?.(idx)}
+                style={{ cursor: onRowDoubleClick ? 'pointer' : 'default' }}
+              >
+                <td onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
                     checked={selectedReports.includes(idx)}

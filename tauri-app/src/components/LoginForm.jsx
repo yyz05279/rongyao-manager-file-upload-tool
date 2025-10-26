@@ -10,7 +10,7 @@ export function LoginForm({ onLoginSuccess }) {
   const [password, setPassword] = useState("");
   const [localError, setLocalError] = useState("");
 
-  const { login, loading } = useAuthStore();
+  const { login, loading, getProject } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,9 +26,24 @@ export function LoginForm({ onLoginSuccess }) {
     }
 
     try {
+      // 登录成功
+      console.log("🔐 [LoginForm] 开始登录...");
       await login(username, password, API_URL);
+      console.log("✅ [LoginForm] 登录成功");
+      
+      // ✅ 立即获取项目信息（与Python版本保持一致）
+      try {
+        console.log("📋 [LoginForm] 开始获取项目信息...");
+        const projectInfo = await getProject();
+        console.log("✅ [LoginForm] 项目信息已获取:", projectInfo);
+      } catch (err) {
+        console.error("⚠️ [LoginForm] 获取项目信息失败:", err);
+        // 不阻止登录流程，项目信息获取失败不影响登录
+      }
+      
       onLoginSuccess?.();
     } catch (err) {
+      console.error("❌ [LoginForm] 登录失败:", err);
       setLocalError(err.message || "登录失败");
     }
   };

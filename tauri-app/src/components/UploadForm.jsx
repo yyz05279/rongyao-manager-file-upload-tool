@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAuthStore } from "../stores/authStore";
 import { uploadAPI, excelAPI } from "../services/api";
 import { DataPreview } from "./DataPreview";
+import { ReportDetailDialog } from "./ReportDetailDialog";
 import "./UploadForm.css";
 
 export function UploadForm() {
@@ -13,8 +14,26 @@ export function UploadForm() {
   const [parsedReports, setParsedReports] = useState([]);
   const [selectedReports, setSelectedReports] = useState([]);
   const [parsing, setParsing] = useState(false);
+  const [selectedReport, setSelectedReport] = useState(null); // ✅ 选中的日报（用于详情弹窗）
 
   const { token, userInfo, projectInfo, logout, getProject } = useAuthStore();
+
+  // ✅ 组件加载时确保有项目信息
+  useEffect(() => {
+    console.log("🔍 [UploadForm] useEffect 检查项目信息, projectInfo:", projectInfo);
+    if (!projectInfo) {
+      console.log("📋 [UploadForm] 项目信息为空，开始获取...");
+      getProject()
+        .then((info) => {
+          console.log("✅ [UploadForm] 项目信息获取成功:", info);
+        })
+        .catch((err) => {
+          console.error("⚠️ [UploadForm] 获取项目信息失败:", err);
+        });
+    } else {
+      console.log("✅ [UploadForm] 项目信息已存在:", projectInfo);
+    }
+  }, [projectInfo, getProject]);
 
   // 角色映射（参考 Python 代码）
   const roleMap = {
@@ -90,6 +109,18 @@ export function UploadForm() {
     setSelectedReports([]);
   };
 
+  // ✅ 双击打开详情弹窗（与Python版本保持一致）
+  const handleRowDoubleClick = (index) => {
+    if (index >= 0 && index < parsedReports.length) {
+      setSelectedReport(parsedReports[index]);
+    }
+  };
+
+  // ✅ 关闭详情弹窗
+  const handleCloseDialog = () => {
+    setSelectedReport(null);
+  };
+
   const handleUpload = async () => {
     if (!filePath) {
       setMessage("❌ 请先选择文件");
@@ -126,6 +157,14 @@ export function UploadForm() {
     }
   };
 
+  // ✅ 添加日志：监控 projectInfo 变化
+  useEffect(() => {
+    console.log("📊 [UploadForm] projectInfo 状态更新:", {
+      hasProjectInfo: !!projectInfo,
+      projectInfo: projectInfo,
+    });
+  }, [projectInfo]);
+
   return (
     <div className="upload-container">
       <div className="upload-header">
@@ -134,9 +173,13 @@ export function UploadForm() {
           <span>
             👤 {userInfo?.name || userInfo?.username}
             {userInfo?.role && ` (${getRoleText(userInfo.role)})`}
-            {projectInfo && (
+            {projectInfo ? (
               <span style={{ marginLeft: '20px' }}>
                 | 当前项目: <strong style={{ color: '#FFD700' }}>{projectInfo.name}</strong>
+              </span>
+            ) : (
+              <span style={{ marginLeft: '20px', color: '#FF9800' }}>
+                | 项目信息加载中...
               </span>
             )}
           </span>
@@ -171,7 +214,16 @@ export function UploadForm() {
           onToggleReport={handleToggleReport}
           onSelectAll={handleSelectAll}
           onDeselectAll={handleDeselectAll}
+          onRowDoubleClick={handleRowDoubleClick}
         />
+
+        {/* ✅ 日报详情弹窗 */}
+        {selectedReport && (
+          <ReportDetailDialog
+            report={selectedReport}
+            onClose={handleCloseDialog}
+          />
+        )}
 
         <div className="progress-bar">
           <div className="progress" style={{ width: `${uploadProgress}%` }} />

@@ -40,15 +40,29 @@ async fn cmd_login(
 async fn cmd_get_project(
     state: tauri::State<'_, AppState>,
 ) -> Result<project::ProjectInfo, String> {
+    println!("🔍 [cmd_get_project] Tauri命令被调用");
+    
     let token = state
         .token
         .lock()
         .unwrap()
         .clone()
-        .ok_or("未登录")?;
+        .ok_or_else(|| {
+            println!("❌ [cmd_get_project] Token为空，用户未登录");
+            "未登录".to_string()
+        })?;
+
+    println!("✅ [cmd_get_project] Token已获取");
 
     let service = ProjectService::new(state.api_base_url.clone(), token);
-    service.get_my_project().await
+    let result = service.get_my_project().await;
+    
+    match &result {
+        Ok(info) => println!("✅ [cmd_get_project] 项目信息获取成功: {:?}", info),
+        Err(e) => println!("❌ [cmd_get_project] 项目信息获取失败: {}", e),
+    }
+    
+    result
 }
 
 #[tauri::command]
