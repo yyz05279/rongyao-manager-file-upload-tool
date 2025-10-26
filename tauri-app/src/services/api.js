@@ -17,6 +17,9 @@ const safeInvoke = async (cmd, args) => {
 export const authAPI = {
   login: (username, password, apiUrl) =>
     safeInvoke("cmd_login", { username, password, apiUrl }),
+  
+  refreshToken: () =>
+    safeInvoke("cmd_refresh_token", {}),
 };
 
 export const projectAPI = {

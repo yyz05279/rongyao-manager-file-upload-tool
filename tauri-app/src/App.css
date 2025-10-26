@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #E3F2FD 0%, #2196F3 100%);
   min-height: 100vh;
 }
 
@@ -56,7 +56,7 @@
 
 .form-input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: #2196F3;
 }
 
 .form-input:disabled {
@@ -105,15 +105,15 @@
 
 .btn-login {
   width: 100%;
-  background: #667eea;
+  background: #2196F3;
   color: white;
   margin-top: 20px;
 }
 
 .btn-login:hover:not(:disabled) {
-  background: #5568d3;
+  background: #1976D2;
   transform: translateY(-2px);
-  box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 5px 20px rgba(33, 150, 243, 0.4);
 }
 
 .btn-login:disabled {
@@ -135,7 +135,7 @@
 }
 
 .upload-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #64B5F6 0%, #2196F3 100%);
   color: white;
   padding: 30px;
   display: flex;
@@ -188,13 +188,13 @@
 
 .btn-select,
 .btn-upload {
-  background: #667eea;
+  background: #2196F3;
   color: white;
 }
 
 .btn-select:hover:not(:disabled),
 .btn-upload:hover:not(:disabled) {
-  background: #5568d3;
+  background: #1976D2;
 }
 
 .btn-select:disabled,

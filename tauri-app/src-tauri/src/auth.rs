@@ -134,4 +134,63 @@ impl AuthService {
     pub fn get_token(&self) -> Option<&str> {
         self.token.as_deref()
     }
+
+    /// 刷新Token
+    pub async fn refresh_token(&mut self) -> Result<String, String> {
+        println!("🔄 [AuthService] 开始刷新Token");
+        
+        let refresh_token = self.refresh_token
+            .as_ref()
+            .ok_or("RefreshToken不存在")?;
+
+        let client = reqwest::Client::new();
+        let refresh_url = format!("{}/api/v1/auth/refresh", self.api_base_url);
+
+        let payload = serde_json::json!({
+            "refreshToken": refresh_token
+        });
+
+        println!("🔄 [AuthService] 发送刷新请求到: {}", refresh_url);
+
+        let response = client
+            .post(&refresh_url)
+            .json(&payload)
+            .send()
+            .await
+            .map_err(|e| {
+                let err_msg = format!("刷新Token请求失败: {}", e);
+                println!("❌ [AuthService] {}", err_msg);
+                err_msg
+            })?;
+
+        println!("📡 [AuthService] 刷新响应状态: {}", response.status());
+
+        if !response.status().is_success() {
+            let err_msg = "刷新Token失败: Token已过期".to_string();
+            println!("❌ [AuthService] {}", err_msg);
+            return Err(err_msg);
+        }
+
+        let result: serde_json::Value = response
+            .json()
+            .await
+            .map_err(|e| {
+                let err_msg = format!("解析刷新响应失败: {}", e);
+                println!("❌ [AuthService] {}", err_msg);
+                err_msg
+            })?;
+
+        println!("📦 [AuthService] 刷新响应数据: {}", serde_json::to_string_pretty(&result).unwrap_or_default());
+
+        let new_token = result["data"]["token"]
+            .as_str()
+            .ok_or("刷新后的token不存在")?
+            .to_string();
+
+        self.token = Some(new_token.clone());
+
+        println!("✅ [AuthService] Token刷新成功");
+
+        Ok(new_token)
+    }
 }
