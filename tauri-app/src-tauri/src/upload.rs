@@ -34,9 +34,10 @@ impl UploadService {
         let client = reqwest::Client::new();
         let url = format!("{}/api/v1/daily-reports/batch-import", self.api_base_url);
 
+        // ✅ 使用 "token" 作为 header key（与Python保持一致）
         let response = client
             .post(&url)
-            .header("Authorization", format!("Bearer {}", self.token))
+            .header("token", &self.token)
             .json(&api_data)
             .send()
             .await

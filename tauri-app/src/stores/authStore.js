@@ -76,9 +76,18 @@ export const useAuthStore = create((set, get) => ({
 
   getProject: async () => {
     console.log("🔍 [authStore] 开始获取项目信息...");
+    const { token } = get();
+    
+    if (!token) {
+      const error = "未登录，无法获取项目信息";
+      console.error("❌ [authStore]", error);
+      set({ error, loading: false });
+      throw new Error(error);
+    }
+    
     set({ loading: true, error: null });
     try {
-      const projectInfo = await projectAPI.getMyProject();
+      const projectInfo = await projectAPI.getMyProject(token);
       console.log("✅ [authStore] 项目信息获取成功:", projectInfo);
       set({ projectInfo, loading: false });
       return projectInfo;
@@ -92,8 +101,17 @@ export const useAuthStore = create((set, get) => ({
   // ✅ 刷新Token
   refreshToken: async () => {
     console.log("🔄 [authStore] 开始刷新Token");
+    const { refreshToken } = get();
+    
+    if (!refreshToken) {
+      const error = "RefreshToken不存在";
+      console.error("❌ [authStore]", error);
+      get().logout();
+      throw new Error(error);
+    }
+    
     try {
-      const newToken = await authAPI.refreshToken();
+      const newToken = await authAPI.refreshToken(refreshToken);
       console.log("✅ [authStore] Token刷新成功");
       
       // ✅ 更新Token和过期时间

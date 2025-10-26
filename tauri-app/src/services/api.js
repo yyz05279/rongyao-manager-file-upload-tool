@@ -18,17 +18,17 @@ export const authAPI = {
   login: (username, password, apiUrl) =>
     safeInvoke("cmd_login", { username, password, apiUrl }),
   
-  refreshToken: () =>
-    safeInvoke("cmd_refresh_token", {}),
+  refreshToken: (refreshToken) =>
+    safeInvoke("cmd_refresh_token", { refreshToken }),
 };
 
 export const projectAPI = {
-  getMyProject: () => safeInvoke("cmd_get_project", {}),
+  getMyProject: (token) => safeInvoke("cmd_get_project", { token }),
 };
 
 export const uploadAPI = {
-  uploadFile: (filePath, projectId, reporterId) =>
-    safeInvoke("cmd_upload_file", { filePath, projectId, reporterId }),
+  uploadFile: (filePath, projectId, reporterId, token) =>
+    safeInvoke("cmd_upload_file", { filePath, projectId, reporterId, token }),
 };
 
 export const excelAPI = {

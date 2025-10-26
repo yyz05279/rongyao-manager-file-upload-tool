@@ -145,7 +145,8 @@ export function UploadForm() {
       const result = await uploadAPI.uploadFile(
         filePath,
         projectInfo.id,
-        userInfo.id
+        userInfo.id,
+        token  // ✅ 传入token
       );
       setMessage(`✅ ${result}`);
       setUploadProgress(100);

@@ -33,14 +33,20 @@ impl ProjectService {
     pub async fn get_my_project(&self) -> Result<ProjectInfo, String> {
         println!("🔍 [ProjectService] 开始获取项目信息");
         println!("  - URL: {}/api/v1/projects/my-project", self.api_base_url);
-        println!("  - Token: {}", &self.token[..20.min(self.token.len())]); // 只打印前20个字符
+        println!("  - Token长度: {} 字符", self.token.len());
+        println!("  - Token前20字符: {}", &self.token[..20.min(self.token.len())]);
+        println!("  - Token后20字符: {}", &self.token[self.token.len().saturating_sub(20)..]);
+        println!("  - 完整Token: {}", self.token);
         
         let client = reqwest::Client::new();
         let url = format!("{}/api/v1/projects/my-project", self.api_base_url);
+        
+        // ✅ 使用 "token" 作为 header key（与Python保持一致）
+        println!("  - token Header: {}", self.token);
 
         let response = client
             .get(&url)
-            .header("Authorization", format!("Bearer {}", self.token))
+            .header("token", &self.token)
             .send()
             .await
             .map_err(|e| {

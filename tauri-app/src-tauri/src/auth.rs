@@ -33,6 +33,15 @@ impl AuthService {
         }
     }
 
+    /// 创建带有refresh_token的实例（用于刷新token场景）
+    pub fn with_refresh_token(api_base_url: String, refresh_token: String) -> Self {
+        Self {
+            api_base_url,
+            token: None,
+            refresh_token: Some(refresh_token),
+        }
+    }
+
     /// 判断是否是手机号
     fn is_phone_number(value: &str) -> bool {
         // 去除空格和特殊字符
@@ -86,6 +95,9 @@ impl AuthService {
             .await
             .map_err(|e| format!("解析响应失败: {}", e))?;
 
+        // ✅ 打印完整的响应数据用于调试
+        println!("📦 [AuthService] 登录响应数据: {}", serde_json::to_string_pretty(&result).unwrap_or_default());
+
         // 提取 token 和用户信息
         let token = result["data"]["token"]
             .as_str()
@@ -96,6 +108,11 @@ impl AuthService {
             .as_str()
             .unwrap_or("")
             .to_string();
+        
+        println!("✅ [AuthService] Token提取成功");
+        println!("  - Token长度: {} 字符", token.len());
+        println!("  - Token内容: {}", token);
+        println!("  - RefreshToken长度: {} 字符", refresh_token.len());
 
         let user_info = UserInfo {
             id: result["data"]["user"]["id"].as_i64().unwrap_or(0) as i32,

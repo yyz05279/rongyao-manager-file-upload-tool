@@ -29,11 +29,13 @@ async fn cmd_login(
     state: tauri::State<'_, AppState>,
 ) -> Result<AuthResponse, String> {
     println!("🔐 [cmd_login] 开始登录流程");
+    println!("  - 用户名: {}", username);
+    println!("  - API URL: {}", api_url);
     
     let mut auth = AuthService::new(api_url.clone());
     let result = auth.login(&username, &password).await?;
     
-    println!("✅ [cmd_login] 登录成功，保存Token到全局状态");
+    println!("✅ [cmd_login] 登录成功，准备保存Token到全局状态");
     println!("  - Token: {}...", &result.token[..20.min(result.token.len())]);
     println!("  - RefreshToken: {}...", &result.refresh_token[..20.min(result.refresh_token.len())]);
     
@@ -42,37 +44,44 @@ async fn cmd_login(
     *state.refresh_token.lock().unwrap() = Some(result.refresh_token.clone());
     *state.auth_service.lock().unwrap() = Some(auth);
     
-    println!("✅ [cmd_login] Token已保存到全局状态");
+    // ✅ 验证Token是否真的保存了
+    let saved_token = state.token.lock().unwrap();
+    if saved_token.is_some() {
+        println!("✅ [cmd_login] Token已成功保存到全局状态");
+        println!("  - 验证Token前缀: {}...", &saved_token.as_ref().unwrap()[..20.min(saved_token.as_ref().unwrap().len())]);
+    } else {
+        println!("❌ [cmd_login] Token保存失败！");
+    }
+    drop(saved_token); // 释放锁
     
     Ok(result)
 }
 
 #[tauri::command]
 async fn cmd_get_project(
+    token: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<project::ProjectInfo, String> {
     println!("🔍 [cmd_get_project] Tauri命令被调用");
     
-    let token = state
-        .token
-        .lock()
-        .unwrap()
-        .clone()
-        .ok_or_else(|| {
-            println!("❌ [cmd_get_project] Token为空，用户未登录");
-            "未登录".to_string()
-        })?;
-
-    println!("✅ [cmd_get_project] Token已获取");
+    // ✅ 验证token不为空
+    if token.is_empty() {
+        println!("❌ [cmd_get_project] Token为空");
+        return Err("未登录".to_string());
+    }
+    
+    println!("✅ [cmd_get_project] 收到Token");
+    println!("  - Token长度: {} 字符", token.len());
+    println!("  - Token前20字符: {}...", &token[..20.min(token.len())]);
 
     let service = ProjectService::new(state.api_base_url.clone(), token);
     let result = service.get_my_project().await;
-    
+
     match &result {
         Ok(info) => println!("✅ [cmd_get_project] 项目信息获取成功: {:?}", info),
         Err(e) => println!("❌ [cmd_get_project] 项目信息获取失败: {}", e),
     }
-    
+
     result
 }
 
@@ -81,14 +90,17 @@ async fn cmd_upload_file(
     file_path: String,
     project_id: i32,
     reporter_id: i32,
+    token: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
-    let token = state
-        .token
-        .lock()
-        .unwrap()
-        .clone()
-        .ok_or("未登录")?;
+    println!("📤 [cmd_upload_file] Tauri命令被调用");
+    
+    if token.is_empty() {
+        println!("❌ [cmd_upload_file] Token为空");
+        return Err("未登录".to_string());
+    }
+    
+    println!("✅ [cmd_upload_file] 收到Token，长度: {} 字符", token.len());
 
     let service = UploadService::new(state.api_base_url.clone(), token);
     service.upload_daily_report(file_path, project_id, reporter_id).await
@@ -102,28 +114,27 @@ async fn cmd_parse_excel(file_path: String) -> Result<serde_json::Value, String>
 
 #[tauri::command]
 async fn cmd_refresh_token(
+    refresh_token: String,
     state: tauri::State<'_, AppState>,
 ) -> Result<String, String> {
     println!("🔄 [cmd_refresh_token] Tauri命令被调用");
     
-    // ✅ 先获取auth_service，在释放锁之前clone
-    let mut auth_service = {
-        let mut auth_service_lock = state.auth_service.lock().unwrap();
-        auth_service_lock
-            .take()
-            .ok_or_else(|| {
-                println!("❌ [cmd_refresh_token] AuthService未初始化");
-                "未登录".to_string()
-            })?
-    }; // 锁在这里被释放
-
+    if refresh_token.is_empty() {
+        println!("❌ [cmd_refresh_token] RefreshToken为空");
+        return Err("未登录".to_string());
+    }
+    
+    println!("✅ [cmd_refresh_token] 收到RefreshToken，长度: {} 字符", refresh_token.len());
+    
+    // ✅ 使用refresh_token创建AuthService实例
+    let mut auth_service = AuthService::with_refresh_token(
+        state.api_base_url.clone(), 
+        refresh_token
+    );
+    
     let new_token = auth_service.refresh_token().await?;
     
-    // 更新全局状态中的token和auth_service
-    *state.token.lock().unwrap() = Some(new_token.clone());
-    *state.auth_service.lock().unwrap() = Some(auth_service);
-    
-    println!("✅ [cmd_refresh_token] Token刷新成功并已更新全局状态");
+    println!("✅ [cmd_refresh_token] Token刷新成功");
     
     Ok(new_token)
 }
@@ -140,7 +151,7 @@ fn main() {
             auth_service: Arc::new(Mutex::new(None)),
             token: Arc::new(Mutex::new(None)),
             refresh_token: Arc::new(Mutex::new(None)),
-            api_base_url: "http://localhost:3000".to_string(),
+            api_base_url: "http://42.192.76.234:8081".to_string(),
         })
         .invoke_handler(tauri::generate_handler![
             greet,
