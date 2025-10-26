@@ -70,11 +70,11 @@ export function DataPreview({ reports, selectedReports, onToggleReport, onSelect
                 <td className={`progress-${report.overallProgress}`}>
                   {progressMap[report.overallProgress] || "正常"}
                 </td>
-                <td>{report.taskCount || 0}</td>
+                <td>{report.taskProgressList?.length || 0}</td>
                 <td>{report.onSitePersonnelCount || 0}</td>
-                <td>{report.machineryCount || 0}</td>
-                <td className={report.problemCount > 0 ? "has-problems" : ""}>
-                  {report.problemCount || 0}
+                <td>{report.machineryRentals?.length || 0}</td>
+                <td className={(report.problemFeedbacks?.length || 0) > 0 ? "has-problems" : ""}>
+                  {report.problemFeedbacks?.length || 0}
                 </td>
                 <td>{report.weather || "-"}</td>
               </tr>
