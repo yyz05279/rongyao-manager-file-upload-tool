@@ -1,0 +1,280 @@
+熔盐管理文件上传工具 - 完整目录树
+=====================================
+生成时间: 2025-10-26
+
+项目根目录结构
+==============
+
+熔盐管理文件上传工具/
+│
+├── 📚 核心文档（根目录保留）
+│   ├── README.md                           # 项目入口文档
+│   ├── INDEX.md                            # 完整文档索引
+│   ├── 项目结构说明.md                      # 项目整体结构 ⭐
+│   ├── 快速参考.md                          # 快速参考卡片
+│   ├── 项目整理完成总结.md                  # 项目整理总结
+│   ├── 目录重组完成说明.md                  # 目录重组说明
+│   ├── 文档整理完成说明.md                  # 文档整理说明 ⭐ 新
+│   └── 项目目录树.txt                       # 完整目录树
+│
+├── 📦 Tauri 版本应用 (推荐使用)
+│   └── tauri-app/
+│       │
+│       ├── docs/                           # Tauri 文档目录 ⭐ 新
+│       │   ├── README.md                   # 文档索引
+│       │   ├── Tauri版本说明.md            # Tauri 版本说明
+│       │   ├── TAURI_QUICKSTART.md         # 快速开始
+│       │   ├── TAURI_DEVELOPMENT_GUIDE.md  # 开发指南
+│       │   └── ... (15+ 个文档)
+│       │
+│       ├── 前端源代码 (React)
+│       │   ├── src/
+│       │   │   ├── main.jsx                # React入口
+│       │   │   ├── App.jsx                 # 主应用组件
+│       │   │   ├── App.css                 # 主应用样式
+│       │   │   ├── index.css               # 全局样式
+│       │   │   │
+│       │   │   ├── components/             # React组件
+│       │   │   │   ├── LoginForm.jsx       # 登录表单组件
+│       │   │   │   ├── LoginForm.css       # 登录表单样式
+│       │   │   │   ├── UploadForm.jsx      # 上传表单组件
+│       │   │   │   ├── UploadForm.css      # 上传表单样式
+│       │   │   │   ├── PreviewDialog.jsx   # 预览对话框
+│       │   │   │   ├── PreviewDialog.css   # 预览样式
+│       │   │   │   ├── DetailDialog.jsx    # 详情对话框
+│       │   │   │   └── DetailDialog.css    # 详情样式
+│       │   │   │
+│       │   │   ├── services/               # 前端服务
+│       │   │   │   └── api.js              # API封装
+│       │   │   │
+│       │   │   └── stores/                 # 状态管理
+│       │   │       └── authStore.js        # 认证状态
+│       │   │
+│       │   ├── index.html                  # HTML入口
+│       │   ├── package.json                # Node依赖配置
+│       │   ├── package-lock.json           # 依赖锁定
+│       │   └── vite.config.js              # Vite配置
+│       │
+│       └── 后端源代码 (Rust)
+│           └── src-tauri/
+│               ├── src/
+│               │   ├── main.rs             # Rust入口
+│               │   │
+│               │   ├── api/                # API模块
+│               │   │   ├── mod.rs          # 模块入口
+│               │   │   ├── auth.rs         # 认证API
+│               │   │   ├── project.rs      # 项目API
+│               │   │   └── upload.rs       # 上传API
+│               │   │
+│               │   ├── commands/           # Tauri命令
+│               │   │   ├── mod.rs          # 模块入口
+│               │   │   ├── auth_commands.rs    # 认证命令
+│               │   │   ├── project_commands.rs # 项目命令
+│               │   │   └── upload_commands.rs  # 上传命令
+│               │   │
+│               │   └── utils/              # 工具函数
+│               │       ├── mod.rs          # 模块入口
+│               │       ├── excel.rs        # Excel解析
+│               │       └── http.rs         # HTTP客户端
+│               │
+│               ├── capabilities/           # 权限配置
+│               │   └── default.json
+│               │
+│               ├── icons/                  # 应用图标
+│               │   └── icon.png
+│               │
+│               ├── Cargo.toml              # Rust依赖
+│               ├── Cargo.lock              # Rust依赖锁定
+│               ├── build.rs                # 构建脚本
+│               └── tauri.conf.json         # Tauri配置
+│
+├── 🐍 Python 版本应用
+│   └── python-app/                         # Python 版本目录
+│       ├── README.md                       # Python 版本说明
+│       ├── main.py                         # Python 入口
+│       │
+│       ├── docs/                           # Python 文档目录 ⭐ 新
+│       │   ├── README.md                   # 文档索引
+│       │   └── Python项目结构详解.md       # 项目结构详解
+│       │
+│       ├── ui/                             # PyQt 界面层
+│       │   ├── __init__.py                 # 包初始化
+│       │   ├── main_window.py              # 主窗口
+│       │   ├── login_widget.py             # 登录界面
+│       │   ├── upload_widget.py            # 上传界面
+│       │   ├── daily_report_detail_dialog.py  # 日报详情对话框
+│       │   └── image/                      # 界面图片资源
+│       │
+│       ├── services/                       # 服务层
+│       │   ├── __init__.py                 # 包初始化
+│       │   ├── app_state.py                # 全局状态
+│       │   ├── base_service.py             # 基础服务类
+│       │   ├── auth_service.py             # 认证服务
+│       │   ├── config_service.py           # 配置服务
+│       │   ├── project_service.py          # 项目服务
+│       │   └── upload_service.py           # 上传服务
+│       │
+│       ├── parse_daily_report_excel.py     # Excel 解析工具
+│       ├── convert_to_api_format.py        # 数据转换工具
+│       │
+│       ├── requirements.txt                # Python 依赖
+│       ├── 熔盐管理文件上传工具.spec        # 打包配置
+│       │
+│       ├── run_macos.sh                    # macOS 运行脚本
+│       ├── build_macos.sh                  # macOS 打包脚本
+│       ├── build_macos_debug.sh            # macOS 调试打包
+│       ├── build_windows.bat               # Windows 打包脚本
+│       ├── install.sh                      # macOS 依赖安装
+│       └── install.bat                     # Windows 依赖安装
+│
+├── 📋 API文档
+│   └── api/
+│       ├── 01-用户认证模块API.md           # 认证接口
+│       └── 19-项目日报批量导入API.md       # 上传接口
+│
+├── 📖 详细文档目录
+│   └── docs/
+│       ├── API地址配置.md                  # API 配置 ⭐ 已重命名
+│       ├── 检查清单.md                     # 检查清单 ⭐ 已重命名
+│       ├── 执行指南.md                     # 执行指南 ⭐ 已重命名
+│       ├── 最终报告.md                     # 最终报告 ⭐ 已重命名
+│       ├── Git忽略配置.md                  # Git 配置 ⭐ 已重命名
+│       ├── 调用错误解决方案.md             # 错误解决 ⭐ 已重命名
+│       ├── 迁移总结.md                     # 迁移总结 ⭐ 已重命名
+│       ├── 项目完成总结.txt                # 完成总结 ⭐ 已重命名
+│       ├── 项目信息和详情对话框修复.md     # 对话框修复 ⭐ 已重命名
+│       ├── 项目总结.md                     # 项目总结 ⭐ 已重命名
+│       ├── 快速启动.md                     # 快速启动 ⭐ 已重命名
+│       ├── 状态报告.md                     # 状态报告 ⭐ 已重命名
+│       ├── 任务数量修复总结.md             # 修复总结 ⭐ 已重命名
+│       │
+│       ├── Tauri迁移方案.md                # Tauri 方案
+│       ├── 方案对比分析.md                 # 方案对比
+│       │
+│       ├── 打包相关
+│       │   ├── Windows打包完整指南.md
+│       │   ├── macOS打包完成总结.md
+│       │   ├── 跨平台打包指南.md
+│       │   └── 打包流程总结.md
+│       │
+│       ├── 功能说明
+│       │   ├── Token管理和无感刷新实现说明.md
+│       │   ├── 用户登录缓存功能说明.md
+│       │   ├── 记住密码功能说明.md
+│       │   ├── 数据预览功能说明.md
+│       │   ├── 批量上传勾选功能说明.md
+│       │   └── ... (更多功能文档)
+│       │
+│       ├── API相关
+│       │   ├── API配置说明.md
+│       │   ├── API字段映射修改说明.md
+│       │   ├── API错误处理优化说明.md
+│       │   └── API调试输出说明.md
+│       │
+│       ├── 界面优化
+│       │   ├── 界面优化说明.md
+│       │   ├── 界面配色优化说明.md
+│       │   ├── 界面滚动优化说明.md
+│       │   └── ... (更多UI文档)
+│       │
+│       └── 历史记录/                       # 历史文档归档 ⭐ 新
+│           ├── README.md                   # 归档说明
+│           ├── 修复完成说明.md
+│           ├── 启动应用.txt
+│           ├── 启动错误解决方案.md
+│           ├── 图标问题已修复.txt
+│           ├── 布局优化说明.md
+│           └── ... (13+ 个历史文档)
+│
+├── 🚀 启动和构建脚本
+│   ├── START_DEV.sh                        # 开发启动脚本
+│   ├── START_TAURI_DEV.sh                  # Tauri 开发脚本
+│   ├── INIT_TAURI_PROJECT.sh               # 项目初始化脚本
+│   └── START_MIGRATION.sh                  # 环境检查脚本
+│
+│   注：Python 相关脚本已移至 python-app/ 目录
+│
+├── 🔧 配置文件
+│   ├── .gitignore                          # Git忽略配置
+│   ├── API_URL_CONFIG.md                   # API配置说明
+│   └── GITIGNORE_CONFIG.md                 # Git配置说明
+│
+├── 📦 测试资源
+│   └── assets/
+│       └── 淮安日报2025.10.19.xlsx         # 测试Excel文件
+│
+└── 📂 其他文档 (60+ 个)
+    ├── MIGRATION_SUMMARY.md
+    ├── TAURI_COMPLETE.md
+    ├── STATUS_REPORT.md
+    ├── EXECUTION_GUIDE.md
+    └── ... (更多文档)
+
+
+忽略的目录 (不需要关注)
+========================
+- node_modules/        # Node.js依赖包 (自动生成)
+- target/              # Rust编译输出 (自动生成)
+- build/               # Python构建临时文件 (自动生成)
+- dist/                # 打包输出目录 (自动生成)
+- __pycache__/         # Python缓存 (自动生成)
+- .DS_Store            # macOS系统文件
+
+
+快速导航
+========
+
+1. 新用户入门
+   README.md → 项目结构说明.md → 选择版本 → 详细文档
+
+2. Tauri 开发
+   cd tauri-app
+   tauri-app/src/ (前端) + tauri-app/src-tauri/src/ (后端)
+
+3. Python 开发
+   cd python-app
+   python-app/main.py (入口) + ui/ (界面) + services/ (服务)
+
+4. 查看文档
+   INDEX.md (索引) + docs/ (详细文档)
+
+5. API 参考
+   api/ 目录
+
+
+统计信息
+========
+- Tauri React 组件: 4 个
+- Tauri Rust 模块: 5 个
+- Tauri 文档: 15+ 个（tauri-app/docs/）
+- Python PyQt 组件: 4 个
+- Python 服务模块: 6 个
+- Python 文档: 2 个（python-app/docs/）
+- 通用文档: 13+ 个（docs/）
+- 历史记录: 13+ 个（docs/历史记录/）
+- 核心文档: 8 个（根目录）
+- API 文档: 2 个（api/）
+- 脚本文件: 8 个
+- **总文档数**: **50+ 篇**（已整理分类）
+
+
+文档整理说明
+============
+✅ 已完成文档整理（v2.2）
+- Tauri 相关文档移至 tauri-app/docs/
+- Python 相关文档移至 python-app/docs/
+- 通用文档移至 docs/
+- 历史记录归档至 docs/历史记录/
+- 英文文件名改为中文
+- 每个目录都有 README.md 索引
+
+
+推荐使用
+========
+⭐ Tauri 版本 - 更现代化、性能更好、体积更小
+
+
+---
+生成时间: 2025 年 10 月 26 日
+版本: v2.2（文档已整理）
+
