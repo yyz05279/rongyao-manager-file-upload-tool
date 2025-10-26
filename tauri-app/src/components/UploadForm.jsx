@@ -15,6 +15,7 @@ export function UploadForm() {
   const [selectedReports, setSelectedReports] = useState([]);
   const [parsing, setParsing] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null); // ✅ 选中的日报（用于详情弹窗）
+  const [overwriteExisting, setOverwriteExisting] = useState(false); // ✅ 是否覆盖已存在的记录
 
   const { token, userInfo, projectInfo, logout, getProject } = useAuthStore();
 
@@ -122,8 +123,9 @@ export function UploadForm() {
   };
 
   const handleUpload = async () => {
-    if (!filePath) {
-      setMessage("❌ 请先选择文件");
+    // ✅ 检查是否有勾选的日报
+    if (selectedReports.length === 0) {
+      setMessage("❌ 请勾选要上传的日报");
       return;
     }
 
@@ -139,20 +141,37 @@ export function UploadForm() {
 
     setLoading(true);
     setUploadProgress(0);
-    setMessage("📤 上传中...");
+    setMessage(`📤 正在上传 ${selectedReports.length} 条日报...`);
 
     try {
-      const result = await uploadAPI.uploadFile(
-        filePath,
+      // ✅ 只上传勾选的日报
+      const selectedReportData = selectedReports.map((index) => parsedReports[index]);
+      
+      const result = await uploadAPI.uploadReports(
+        selectedReportData,
         projectInfo.id,
         userInfo.id,
-        token  // ✅ 传入token
+        overwriteExisting,  // ✅ 传入覆盖选项
+        token
       );
-      setMessage(`✅ ${result}`);
+      
+      // ✅ 显示上传结果
+      const successCount = result.successCount || 0;
+      const failedCount = result.failedCount || 0;
+      const totalCount = result.totalCount || selectedReports.length;
+      
+      setMessage(`✅ 上传完成！总计: ${totalCount} 条, 成功: ${successCount} 条, 失败: ${failedCount} 条`);
       setUploadProgress(100);
+      
+      // ✅ 上传成功后清空所有数据（与Python版本一致）
       setFilePath("");
+      setParsedReports([]);
+      setSelectedReports([]);
+      setUploadProgress(0);
+      
     } catch (err) {
-      setMessage(`❌ 上传失败: ${err}`);
+      setMessage(`❌ 上传失败: ${err.message || err}`);
+      console.error("上传错误:", err);
     } finally {
       setLoading(false);
     }
@@ -230,17 +249,47 @@ export function UploadForm() {
           <div className="progress" style={{ width: `${uploadProgress}%` }} />
         </div>
 
-        <button
-          onClick={handleUpload}
-          disabled={loading || !filePath || selectedReports.length === 0}
-          className="btn-upload"
-        >
-          {loading
-            ? "上传中..."
-            : selectedReports.length > 0
-            ? `开始上传 (${selectedReports.length}/${parsedReports.length})`
-            : "开始上传"}
-        </button>
+        {/* ✅ 覆盖旧记录选项（与Python版本一致） */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'flex-end',
+          marginBottom: '10px',
+          gap: '15px'
+        }}>
+          <label style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            cursor: 'pointer',
+            fontSize: '14px',
+            color: '#666'
+          }}>
+            <input
+              type="checkbox"
+              checked={overwriteExisting}
+              onChange={(e) => setOverwriteExisting(e.target.checked)}
+              style={{ 
+                marginRight: '8px',
+                width: '18px',
+                height: '18px',
+                cursor: 'pointer'
+              }}
+            />
+            <span>覆盖已存在的记录</span>
+          </label>
+
+          <button
+            onClick={handleUpload}
+            disabled={loading || selectedReports.length === 0}
+            className="btn-upload"
+          >
+            {loading
+              ? "上传中..."
+              : selectedReports.length > 0
+              ? `开始上传 (${selectedReports.length}/${parsedReports.length})`
+              : "开始上传"}
+          </button>
+        </div>
 
         {message && (
           <div className={`message ${message.includes("❌") ? "error" : ""}`}>

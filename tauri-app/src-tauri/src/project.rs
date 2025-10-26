@@ -55,13 +55,8 @@ impl ProjectService {
                 err_msg
             })?;
 
-        println!("📡 [ProjectService] 响应状态: {}", response.status());
-
-        if !response.status().is_success() {
-            let err_msg = format!("获取项目信息失败，状态码: {}", response.status());
-            println!("❌ [ProjectService] {}", err_msg);
-            return Err(err_msg);
-        }
+        let status = response.status();
+        println!("📡 [ProjectService] 响应状态: {}", status);
 
         let result: serde_json::Value = response
             .json()
@@ -71,6 +66,19 @@ impl ProjectService {
                 println!("❌ [ProjectService] {}", err_msg);
                 err_msg
             })?;
+
+        // ✅ 检查HTTP状态码
+        if !status.is_success() {
+            // 尝试从响应中提取错误信息
+            let default_msg = format!("获取项目信息失败，状态码: {}", status);
+            let error_msg = result.get("msg")
+                .and_then(|v| v.as_str())
+                .or_else(|| result.get("message").and_then(|v| v.as_str()))
+                .unwrap_or(&default_msg);
+            let err_msg = error_msg.to_string();
+            println!("❌ [ProjectService] {}", err_msg);
+            return Err(err_msg);
+        }
 
         println!("📦 [ProjectService] API响应数据: {}", serde_json::to_string_pretty(&result).unwrap_or_default());
 

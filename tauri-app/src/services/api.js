@@ -29,6 +29,16 @@ export const projectAPI = {
 export const uploadAPI = {
   uploadFile: (filePath, projectId, reporterId, token) =>
     safeInvoke("cmd_upload_file", { filePath, projectId, reporterId, token }),
+  
+  // ✅ 新增：上传勾选的日报（与Python版本一致）
+  uploadReports: (reports, projectId, reporterId, overwriteExisting, token) =>
+    safeInvoke("cmd_upload_reports", { 
+      reports, 
+      projectId, 
+      reporterId, 
+      overwriteExisting,
+      token 
+    }),
 };
 
 export const excelAPI = {

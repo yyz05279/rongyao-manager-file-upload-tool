@@ -86,14 +86,21 @@ impl AuthService {
             .await
             .map_err(|e| format!("网络请求失败: {}", e))?;
 
-        if !response.status().is_success() {
-            return Err("登录失败: 用户名或密码错误".to_string());
-        }
-
+        let status = response.status();
         let result: serde_json::Value = response
             .json()
             .await
             .map_err(|e| format!("解析响应失败: {}", e))?;
+        
+        // ✅ 检查HTTP状态码和业务状态码
+        if !status.is_success() {
+            // 尝试从响应中提取错误信息
+            let error_msg = result.get("msg")
+                .and_then(|v| v.as_str())
+                .or_else(|| result.get("message").and_then(|v| v.as_str()))
+                .unwrap_or("登录失败: 用户名或密码错误");
+            return Err(error_msg.to_string());
+        }
 
         // ✅ 打印完整的响应数据用于调试
         println!("📦 [AuthService] 登录响应数据: {}", serde_json::to_string_pretty(&result).unwrap_or_default());

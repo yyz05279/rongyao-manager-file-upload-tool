@@ -112,6 +112,33 @@ async fn cmd_parse_excel(file_path: String) -> Result<serde_json::Value, String>
         .map(|data| serde_json::json!({"reports": data}))
 }
 
+// ✅ 新增：上传勾选的日报（与Python版本一致）
+#[tauri::command]
+async fn cmd_upload_reports(
+    reports: Vec<serde_json::Value>,
+    project_id: i32,
+    reporter_id: i32,
+    overwrite_existing: bool,
+    token: String,
+    state: tauri::State<'_, AppState>,
+) -> Result<serde_json::Value, String> {
+    println!("📤 [cmd_upload_reports] Tauri命令被调用");
+    println!("  - 日报数量: {}", reports.len());
+    println!("  - 项目ID: {}", project_id);
+    println!("  - 填报人ID: {}", reporter_id);
+    println!("  - 覆盖已存在记录: {}", overwrite_existing);
+    
+    if token.is_empty() {
+        println!("❌ [cmd_upload_reports] Token为空");
+        return Err("未登录".to_string());
+    }
+    
+    println!("✅ [cmd_upload_reports] 收到Token，长度: {} 字符", token.len());
+
+    let service = UploadService::new(state.api_base_url.clone(), token);
+    service.upload_selected_reports(reports, project_id, reporter_id, overwrite_existing).await
+}
+
 #[tauri::command]
 async fn cmd_refresh_token(
     refresh_token: String,
@@ -159,6 +186,7 @@ fn main() {
             cmd_refresh_token,
             cmd_get_project,
             cmd_upload_file,
+            cmd_upload_reports,  // ✅ 新增：上传勾选的日报
             cmd_parse_excel,
         ])
         .run(tauri::generate_context!())
