@@ -11,7 +11,8 @@ export function UploadForm() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [parsedReports, setParsedReports] = useState([]);
+  const [parsedReports, setParsedReports] = useState([]); // ✅ 未上传的日报
+  const [uploadedReports, setUploadedReports] = useState([]); // ✅ 已上传的日报
   const [selectedReports, setSelectedReports] = useState([]);
   const [parsing, setParsing] = useState(false);
   const [selectedReport, setSelectedReport] = useState(null); // ✅ 选中的日报（用于详情弹窗）
@@ -110,10 +111,17 @@ export function UploadForm() {
     setSelectedReports([]);
   };
 
-  // ✅ 双击打开详情弹窗（与Python版本保持一致）
+  // ✅ 双击打开详情弹窗（未上传列表）
   const handleRowDoubleClick = (index) => {
     if (index >= 0 && index < parsedReports.length) {
       setSelectedReport(parsedReports[index]);
+    }
+  };
+
+  // ✅ 双击打开详情弹窗（已上传列表）
+  const handleUploadedRowDoubleClick = (index) => {
+    if (index >= 0 && index < uploadedReports.length) {
+      setSelectedReport(uploadedReports[index]);
     }
   };
 
@@ -163,10 +171,22 @@ export function UploadForm() {
       setMessage(`✅ 上传完成！总计: ${totalCount} 条, 成功: ${successCount} 条, 失败: ${failedCount} 条`);
       setUploadProgress(100);
       
-      // ✅ 上传成功后清空所有数据（与Python版本一致）
-      setFilePath("");
-      setParsedReports([]);
-      setSelectedReports([]);
+      // ✅ 将成功上传的日报移动到已上传列表
+      if (successCount > 0) {
+        const uploadedReportData = selectedReports.map((index) => parsedReports[index]);
+        setUploadedReports((prev) => [...uploadedReportData, ...prev]); // 添加到已上传列表顶部
+        
+        // 从未上传列表中移除已成功上传的日报
+        const remainingReports = parsedReports.filter((_, index) => !selectedReports.includes(index));
+        setParsedReports(remainingReports);
+        setSelectedReports([]);
+      }
+      
+      // 如果所有日报都上传完成，清空文件路径
+      if (parsedReports.length === selectedReports.length) {
+        setFilePath("");
+      }
+      
       setUploadProgress(0);
       
     } catch (err) {
@@ -227,7 +247,7 @@ export function UploadForm() {
           </button>
         </div>
 
-        {/* 数据预览表格 */}
+        {/* ✅ 未上传日报列表 */}
         <DataPreview
           reports={parsedReports}
           selectedReports={selectedReports}
@@ -235,7 +255,21 @@ export function UploadForm() {
           onSelectAll={handleSelectAll}
           onDeselectAll={handleDeselectAll}
           onRowDoubleClick={handleRowDoubleClick}
+          title="📋 未上传日报"
+          emptyMessage="📋 添加文件后，将自动解析并显示数据预览"
         />
+
+        {/* ✅ 已上传日报列表 */}
+        {uploadedReports.length > 0 && (
+          <DataPreview
+            reports={uploadedReports}
+            selectedReports={[]}
+            onRowDoubleClick={handleUploadedRowDoubleClick}
+            title="✅ 已上传日报"
+            emptyMessage=""
+            readOnly={true}
+          />
+        )}
 
         {/* ✅ 日报详情弹窗 */}
         {selectedReport && (
