@@ -155,10 +155,6 @@ impl AuthService {
         })
     }
 
-    pub fn get_token(&self) -> Option<&str> {
-        self.token.as_deref()
-    }
-
     /// 刷新Token
     pub async fn refresh_token(&mut self) -> Result<String, String> {
         println!("🔄 [AuthService] 开始刷新Token");

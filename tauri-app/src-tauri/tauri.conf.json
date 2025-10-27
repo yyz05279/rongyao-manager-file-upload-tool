@@ -17,6 +17,10 @@
     "category": "Productivity",
     "shortDescription": "熔盐管理文件上传工具",
     "longDescription": "用于上传和管理熔盐项目相关文件的桌面应用程序",
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon.png"
+    ],
     "macOS": {
       "minimumSystemVersion": "10.13"
     },
