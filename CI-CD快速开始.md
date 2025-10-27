@@ -226,6 +226,14 @@ on:
 3. 检查 `tauri-app/src-tauri/tauri.conf.json` 配置
 4. 查看 `CI-CD使用指南.md` 的常见问题章节
 
+**✅ 已修复的常见问题**：
+
+- **图标找不到**：已添加 `icon` 配置到 `tauri.conf.json`
+- **Windows WiX 打包失败**：已将 `productName` 改为英文（`molten-salt-upload`），避免中文路径问题
+- **未使用的方法警告**：已移除 `auth.rs` 中的 `get_token` 方法
+
+详见：`docs/Windows打包中文问题修复.md`
+
 ---
 
 ## 🎊 工作流程示意

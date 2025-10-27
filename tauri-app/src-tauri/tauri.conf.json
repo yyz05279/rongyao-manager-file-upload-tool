@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "熔盐管理文件上传工具",
+  "productName": "molten-salt-upload",
   "version": "0.1.0",
   "identifier": "com.molten-salt.upload-tool",
   "build": {
