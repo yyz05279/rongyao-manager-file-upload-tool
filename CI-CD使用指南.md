@@ -411,6 +411,37 @@ on:
 
 **建议**：使用公开仓库，或者购买 GitHub Pro。
 
+### Q6: Release 创建失败，提示 403 错误
+
+**错误信息**：
+
+```
+⚠️ GitHub release failed with status: 403
+Error: Too many retries.
+```
+
+**原因**：GitHub Actions 默认 token 权限不足，无法创建 Release。
+
+**解决方案**：在 `.github/workflows/build.yml` 顶层添加权限配置：
+
+```yaml
+name: Build Tauri App
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # ✅ 允许创建 Release 和上传文件
+
+jobs:
+  build-tauri:
+    # ... 其他配置
+```
+
+**详细说明**：查看 `docs/GitHub-Release权限问题修复.md`
+
 ---
 
 ## 📞 获取帮助

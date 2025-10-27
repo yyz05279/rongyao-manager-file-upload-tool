@@ -6,6 +6,9 @@ on:
       - "v*" # 当推送 v 开头的标签时触发，如 v1.0.0
   workflow_dispatch: # 允许手动触发
 
+permissions:
+  contents: write # 允许创建 Release 和上传文件
+
 jobs:
   build-tauri:
     strategy:
@@ -23,7 +26,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: tauri-app/package-lock.json
 
       - name: Install Rust stable
@@ -32,7 +35,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './tauri-app/src-tauri -> target'
+          workspaces: "./tauri-app/src-tauri -> target"
 
       - name: Install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-latest'
@@ -81,7 +84,7 @@ jobs:
     needs: build-tauri
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -99,4 +102,3 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

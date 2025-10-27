@@ -231,8 +231,12 @@ on:
 - **图标找不到**：已添加 `icon` 配置到 `tauri.conf.json`
 - **Windows WiX 打包失败**：已将 `productName` 改为英文（`molten-salt-upload`），避免中文路径问题
 - **未使用的方法警告**：已移除 `auth.rs` 中的 `get_token` 方法
+- **Release 创建失败 (403)**：已添加 `permissions: contents: write` 到 workflow
 
-详见：`docs/Windows打包中文问题修复.md`
+详见：
+
+- `docs/Windows打包中文问题修复.md`
+- `docs/GitHub-Release权限问题修复.md`
 
 ---
 
