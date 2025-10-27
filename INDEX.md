@@ -85,11 +85,27 @@ python main.py
 
 ### 🔧 实用工具
 
-| 脚本                      | 说明         | 使用方法                     |
-| ------------------------- | ------------ | ---------------------------- |
-| **START_DEV.sh**          | 开发启动脚本 | `bash START_DEV.sh`          |
-| **INIT_TAURI_PROJECT.sh** | 项目初始化   | `bash INIT_TAURI_PROJECT.sh` |
-| **START_MIGRATION.sh**    | 环境检查     | `bash START_MIGRATION.sh`    |
+| 脚本                         | 说明                         | 使用方法                            |
+| ---------------------------- | ---------------------------- | ----------------------------------- |
+| **START_DEV.sh**             | 开发启动脚本                 | `bash START_DEV.sh`                 |
+| **INIT_TAURI_PROJECT.sh**    | 项目初始化                   | `bash INIT_TAURI_PROJECT.sh`        |
+| **START_MIGRATION.sh**       | 环境检查                     | `bash START_MIGRATION.sh`           |
+| **setup-github.sh** ⭐       | 设置 GitHub 远程仓库         | `./setup-github.sh`                 |
+| **setup-gitee.sh** ⭐        | 设置 Gitee 远程仓库          | `./setup-gitee.sh`                  |
+| **release.sh** ⭐            | 发布新版本并触发自动打包     | `./release.sh v1.0.0`               |
+| **push-all.sh** ⭐           | 同时推送到所有仓库           | `./push-all.sh --with-tags`         |
+| **sync-release-to-gitee.sh** | 同步 GitHub Release 到 Gitee | `./sync-release-to-gitee.sh v1.0.0` |
+
+### 📦 打包和部署
+
+| 文档                            | 说明                         | 适合人群       |
+| ------------------------------- | ---------------------------- | -------------- |
+| **打包指南.md** ⭐              | 完整打包指南，支持多平台     | 需要打包分发   |
+| **CI-CD 快速开始.md** ⭐        | 3 步配置自动化打包（GitHub） | 想要自动化打包 |
+| **Gitee 快速开始.md** ⭐        | 3 步配置 Gitee 镜像          | 国内用户       |
+| **Gitee-CI-CD 配置指南.md**     | Gitee CI/CD 完整方案         | 深入了解 Gitee |
+| **CI-CD 使用指南.md**           | CI/CD 详细说明和故障排查     | 深入了解 CI/CD |
+| **.github/workflows/build.yml** | GitHub Actions 配置文件      | 开发者查看配置 |
 
 ---
 
