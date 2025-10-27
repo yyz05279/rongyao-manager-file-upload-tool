@@ -30,7 +30,7 @@ python main.py
 
 - **[项目结构说明.md](./项目结构说明.md)** - ⭐ 首先阅读，了解项目整体结构
 - **[INDEX.md](./INDEX.md)** - 完整文档索引和快速导航
-- **[项目结构说明.md](./项目结构说明.md)** - 项目整体架构说明
+- **[macOS 应用快速修复卡片.md](./macOS应用快速修复卡片.md)** - 🚨 应用无法打开？1 分钟修复
 
 ### 详细文档
 
@@ -38,6 +38,12 @@ python main.py
 - **[PYTHON_PROJECT_STRUCTURE.md](./PYTHON_PROJECT_STRUCTURE.md)** - Python 版本详细结构
 - **[TAURI_QUICKSTART.md](./TAURI_QUICKSTART.md)** - Tauri 快速开始指南
 - **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - 项目完整总结
+
+### 打包和部署
+
+- **[docs/Tauri-CI-CD-QuickStart.md](./docs/Tauri-CI-CD-QuickStart.md)** - 5 分钟配置自动打包和签名
+- **[docs/macOS 应用无法打开解决方案.md](./docs/macOS应用无法打开解决方案.md)** - macOS 安全问题完整解决方案
+- **[打包指南.md](./打包指南.md)** - 跨平台打包完整指南
 
 ---
 
@@ -137,6 +143,21 @@ python main.py              # 运行应用
 ---
 
 ## 🐛 常见问题
+
+### ⚠️ macOS 应用无法打开？
+
+**问题**: 提示"这台 Mac 不支持此应用程序"
+
+**快速修复**:
+
+```bash
+# 在项目根目录运行
+./fix-macos-app.sh auto
+```
+
+**详细说明**: 查看 [macOS 应用无法打开解决方案.md](./docs/macOS应用无法打开解决方案.md)
+
+---
 
 ### Tauri 版本
 

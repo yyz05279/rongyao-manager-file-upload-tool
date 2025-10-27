@@ -22,7 +22,9 @@
       "icons/icon.png"
     ],
     "macOS": {
-      "minimumSystemVersion": "10.13"
+      "minimumSystemVersion": "10.13",
+      "signingIdentity": "Apple Development: yinzhen ye (B7U63QS5Y7)",
+      "entitlements": null
     },
     "windows": {
       "certificateThumbprint": null,

@@ -90,6 +90,7 @@ python main.py
 | **START_DEV.sh**             | 开发启动脚本                 | `bash START_DEV.sh`                 |
 | **INIT_TAURI_PROJECT.sh**    | 项目初始化                   | `bash INIT_TAURI_PROJECT.sh`        |
 | **START_MIGRATION.sh**       | 环境检查                     | `bash START_MIGRATION.sh`           |
+| **fix-macos-app.sh** ⭐⭐    | 修复 macOS 应用无法打开问题  | `./fix-macos-app.sh auto`           |
 | **setup-github.sh** ⭐       | 设置 GitHub 远程仓库         | `./setup-github.sh`                 |
 | **setup-gitee.sh** ⭐        | 设置 Gitee 远程仓库          | `./setup-gitee.sh`                  |
 | **release.sh** ⭐            | 发布新版本并触发自动打包     | `./release.sh v1.0.0`               |
@@ -98,15 +99,20 @@ python main.py
 
 ### 📦 打包和部署
 
-| 文档                                    | 说明                         | 适合人群       |
-| --------------------------------------- | ---------------------------- | -------------- |
-| **打包指南.md** ⭐                      | 完整打包指南，支持多平台     | 需要打包分发   |
-| **CI-CD 快速开始.md** ⭐                | 3 步配置自动化打包（GitHub） | 想要自动化打包 |
-| **docs/Windows 打包中文问题修复.md** ⭐ | 修复 WiX 中文路径打包问题    | 打包失败时查看 |
-| **CI-CD 使用指南.md**                   | CI/CD 详细说明和故障排查     | 深入了解 CI/CD |
-| **Gitee 快速开始.md** ⭐                | 3 步配置 Gitee 镜像          | 国内用户       |
-| **Gitee-CI-CD 配置指南.md**             | Gitee CI/CD 完整方案         | 深入了解 Gitee |
-| **.github/workflows/build.yml**         | GitHub Actions 配置文件      | 开发者查看配置 |
+| 文档                                            | 说明                             | 适合人群       |
+| ----------------------------------------------- | -------------------------------- | -------------- |
+| **打包指南.md** ⭐                              | 完整打包指南，支持多平台         | 需要打包分发   |
+| **CI-CD 快速开始.md** ⭐                        | 3 步配置自动化打包（GitHub）     | 想要自动化打包 |
+| **docs/Tauri-CI-CD-QuickStart.md** ⭐⭐         | 5 分钟配置 Tauri 自动打包和签名  | Tauri 开发者   |
+| **docs/GitHub-Secrets 配置指南.md** ⭐          | GitHub Secrets 详细配置步骤      | CI/CD 配置     |
+| **docs/macOS 应用无法打开解决方案.md** ⭐⭐     | 解决 macOS 应用无法打开问题      | 遇到打开问题   |
+| **tauri-app/docs/TAURI_CODESIGN_GUIDE.md** ⭐⭐ | Tauri 应用代码签名完整指南       | Tauri 签名配置 |
+| **docs/Windows 打包中文问题修复.md** ⭐         | 修复 WiX 中文路径打包问题        | 打包失败时查看 |
+| **CI-CD 使用指南.md**                           | CI/CD 详细说明和故障排查         | 深入了解 CI/CD |
+| **docs/Gitee 快速开始.md** ⭐                   | 3 步配置 Gitee 镜像              | 国内用户       |
+| **docs/Gitee-CI-CD 配置指南.md**                | Gitee CI/CD 完整方案             | 深入了解 Gitee |
+| **.github/workflows/build.yml**                 | GitHub Actions 配置文件（旧版）  | 开发者查看配置 |
+| **.github/workflows/build-tauri.yml** ⭐        | Tauri 自动打包和签名配置（新版） | 开发者查看配置 |
 
 ---
 
